@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// Result
 /// A type-safe wrapper for handling success and failure states
 sealed class Result<T> {
@@ -294,7 +296,7 @@ void resultExamples() {
 
   // Checking state
   if (success.isSuccess) {
-    print(success.dataOrNull); // Hello World
+    debugPrint(success.dataOrNull); // Hello World
   }
 
   // Pattern matching with when
@@ -309,8 +311,8 @@ void resultExamples() {
   // Chaining operations
   final result = success
       .map((data) => data.toUpperCase())
-      .onSuccess((data) => print('Success: $data'))
-      .onFailure((error, exception) => print('Error: $error'));
+      .onSuccess((data) => debugPrint('Success: $data'))
+      .onFailure((error, exception) => debugPrint('Error: $error'));
 
   // Getting data with fallback
   final data = failure.getOrDefault('Default value');

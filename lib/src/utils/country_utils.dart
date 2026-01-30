@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 /// Country Utilities
 /// Fetch real-time countries, states, and cities data
@@ -519,13 +520,13 @@ void countryUtilsExamples() async {
   final countries = await CountryUtils.getAllCountries();
   if (countries.success) {
     for (final country in countries.countries) {
-      print('${country.flag} ${country.name} (${country.dialCode})');
+      debugPrint('${country.flag} ${country.name} (${country.dialCode})');
     }
   }
 
   // Get country by code
   final nigeria = await CountryUtils.getCountryByCode('NG');
-  print('${nigeria?.name} - Capital: ${nigeria?.capital}');
+  debugPrint('${nigeria?.name} - Capital: ${nigeria?.capital}');
 
   // Search countries
   final results = await CountryUtils.searchCountries('United');
@@ -534,7 +535,7 @@ void countryUtilsExamples() async {
   final states = await CountryUtils.getStates('NG');
   if (states.success) {
     for (final state in states.states) {
-      print(state.name);
+      debugPrint(state.name);
     }
   }
 
@@ -549,12 +550,12 @@ void countryUtilsExamples() async {
 
   // Get popular countries
   for (final country in CountryUtils.popularCountries) {
-    print('${country.flag} ${country.name}');
+    debugPrint('${country.flag} ${country.name}');
   }
 
   // Get dial codes
   final dialCodes = await CountryUtils.getDialCodes();
   for (final dialCode in dialCodes.take(10)) {
-    print(dialCode.fullDisplay);
+    debugPrint(dialCode.fullDisplay);
   }
 }

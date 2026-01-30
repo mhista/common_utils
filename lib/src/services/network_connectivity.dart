@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 
 /// Network Connectivity Utility
 /// Monitor network status, connection type, and connectivity changes
@@ -481,46 +482,46 @@ void networkConnectivityExamples() async {
   // Initialize
   await NetworkConnectivity.init(
     onConnectivityChanged: (status) {
-      print('Connection changed: ${status.connectionType.name}');
+      debugPrint('Connection changed: ${status.connectionType.name}');
       if (status.isConnected) {
-        print('✓ Connected to internet');
+        debugPrint('✓ Connected to internet');
       } else {
-        print('✗ No internet connection');
+        debugPrint('✗ No internet connection');
       }
     },
   );
 
   // Check current status
   final status = await NetworkConnectivity.checkConnectivity();
-  print('Current status: ${status.connectionType.name}');
-  print('Connected: ${status.isConnected}');
+  debugPrint('Current status: ${status.connectionType.name}');
+  debugPrint('Connected: ${status.isConnected}');
 
   // Check connection type
   if (NetworkConnectivity.isWifi) {
-    print('Connected via WiFi');
+    debugPrint('Connected via WiFi');
   } else if (NetworkConnectivity.isMobile) {
-    print('Connected via Mobile Data');
+    debugPrint('Connected via Mobile Data');
   }
 
   // Check internet connectivity
   final hasInternet = await NetworkConnectivity.hasInternetConnection();
-  print('Has internet: $hasInternet');
+  debugPrint('Has internet: $hasInternet');
 
   // Ping test
   final pingResult = await NetworkConnectivity.ping(host: 'google.com');
-  print(pingResult);
+  // debugPrint(pingResult);
 
   // Check connection quality
   final quality = await NetworkConnectivity.getConnectionQuality();
-  print('Connection quality: ${quality.icon} ${quality.name}');
+  debugPrint('Connection quality: ${quality.icon} ${quality.name}');
 
   // Estimate speed
   final speedTest = await NetworkConnectivity.estimateSpeed();
-  print('Estimated speed: ${speedTest.formattedSpeed}');
+  debugPrint('Estimated speed: ${speedTest.formattedSpeed}');
 
   // Listen to connectivity changes
   NetworkConnectivity.onConnectivityChanged.listen((status) {
-    print('${status.connectionType.icon} ${status.connectionType.name}');
+    debugPrint('${status.connectionType.icon} ${status.connectionType.name}');
   });
 
   // Wait for connection
@@ -528,9 +529,9 @@ void networkConnectivityExamples() async {
     await NetworkConnectivity.waitForConnection(
       timeout: Duration(seconds: 10),
     );
-    print('Connection established!');
+    debugPrint('Connection established!');
   } catch (e) {
-    print('Timeout waiting for connection');
+    debugPrint('Timeout waiting for connection');
   }
 
   // Get quick status

@@ -11,7 +11,7 @@ class ResponsiveHelper {
   // ==================== Base Design Dimensions ====================
   
   static const double _baseWidth = 360.0;
-  static const double _baseHeight = 690.0;
+  // static const double _baseHeight = 690.0;
 
   // ==================== Screen Breakpoints ====================
 

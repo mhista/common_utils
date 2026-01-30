@@ -337,7 +337,7 @@ extension ListExtensions<T> on List<T> {
   }
 }
 
-/// Extension for List<num>
+/// Extension for List<num>.
 extension NumListExtensions on List<num> {
   /// Get sum of all elements
   num get sum => isEmpty ? 0 : reduce((a, b) => a + b);

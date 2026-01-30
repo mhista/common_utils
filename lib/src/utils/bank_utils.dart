@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 /// Bank Utilities
 /// Utilities for bank operations using Paystack API
@@ -389,9 +390,9 @@ void bankUtilsExamples() async {
   // Get Nigerian banks
   final banksResult = await BankUtils.getNigerianBanks();
   if (banksResult.success) {
-    print('Found ${banksResult.banks.length} banks');
+    debugPrint('Found ${banksResult.banks.length} banks');
     for (final bank in banksResult.banks) {
-      print('${bank.name} - ${bank.code}');
+      debugPrint('${bank.name} - ${bank.code}');
     }
   }
 
@@ -402,7 +403,7 @@ void bankUtilsExamples() async {
   );
 
   if (resolution.success) {
-    print('Account Name: ${resolution.accountName}');
+    debugPrint('Account Name: ${resolution.accountName}');
   }
 
   // Validate account
@@ -412,7 +413,7 @@ void bankUtilsExamples() async {
   );
 
   if (validation.isValid) {
-    print('Valid account: ${validation.accountName}');
+    debugPrint('Valid account: ${validation.accountName}');
   }
 
   // Search banks
@@ -423,10 +424,10 @@ void bankUtilsExamples() async {
 
   // Get bank by code
   final bank = await BankUtils.getBankByCode(code: '058');
-  print(bank?.name);
+  debugPrint(bank?.name);
 
   // Get supported countries
   for (final country in BankUtils.supportedCountries) {
-    print('${country.name} (${country.currency})');
+    debugPrint('${country.name} (${country.currency})');
   }
 }

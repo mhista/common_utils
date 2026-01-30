@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 /// Currency Utilities
 /// Real-time currency conversion and exchange rates
@@ -492,8 +493,8 @@ void currencyUtilsExamples() async {
   // Get exchange rates
   final rates = await CurrencyUtils.getExchangeRates(baseCurrency: 'USD');
   if (rates.success) {
-    print('1 USD = ${rates.getRate('NGN')} NGN');
-    print('1 USD = ${rates.getRate('EUR')} EUR');
+    debugPrint('1 USD = ${rates.getRate('NGN')} NGN');
+    debugPrint('1 USD = ${rates.getRate('EUR')} EUR');
   }
 
   // Convert currency
@@ -504,8 +505,8 @@ void currencyUtilsExamples() async {
   );
 
   if (conversion.success) {
-    print(conversion.formattedConversion);
-    print('Exchange Rate: ${conversion.exchangeRate}');
+    debugPrint(conversion.formattedConversion);
+    debugPrint('Exchange Rate: ${conversion.exchangeRate}');
   }
 
   // Swap currencies
@@ -515,8 +516,8 @@ void currencyUtilsExamples() async {
     currency2: 'EUR',
   );
 
-  print('100 USD to EUR: ${swap.currency1ToCurrency2.toAmount}');
-  print('100 EUR to USD: ${swap.currency2ToCurrency1.toAmount}');
+  debugPrint('100 USD to EUR: ${swap.currency1ToCurrency2.toAmount}');
+  debugPrint('100 EUR to USD: ${swap.currency2ToCurrency1.toAmount}');
 
   // Convert to multiple currencies
   final multiConversion = await CurrencyUtils.convertToMultiple(
@@ -527,7 +528,7 @@ void currencyUtilsExamples() async {
 
   multiConversion.forEach((currency, result) {
     if (result.success) {
-      print('100 USD = ${result.toAmount} $currency');
+      debugPrint('100 USD = ${result.toAmount} $currency');
     }
   });
 
@@ -539,10 +540,10 @@ void currencyUtilsExamples() async {
 
   // Get popular currencies
   for (final currency in CurrencyUtils.popularCurrencies) {
-    print('${currency.name}: ${currency.symbol}');
+    debugPrint('${currency.name}: ${currency.symbol}');
   }
 
   // Format amount
   final formatted = CurrencyUtils.formatAmount(1500000, 'NGN');
-  print(formatted); // ₦1500000.00
+  debugPrint(formatted); // ₦1500000.00
 }
