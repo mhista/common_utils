@@ -1,4 +1,4 @@
-import 'package:common_utils/common_utils.dart';
+import 'package:common_utils2/common_utils.dart';
 import 'package:flutter/material.dart';
 
 void main() async {

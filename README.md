@@ -1,4 +1,4 @@
-# Your Company Utils
+# Common Utils2
 
 [![pub package](https://img.shields.io/pub/v/your_company_utils.svg)](https://pub.dev/packages/your_company_utils)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -73,7 +73,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  common_utils: ^1.0.0
+  common_utils2: ^1.0.0
 ```
 
 Then run:
@@ -87,7 +87,7 @@ flutter pub get
 ### Initialize in your app
 
 ```dart
-import 'package:common_utils/common_utils.dart';
+import 'package:common_utils2/common_utils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
