@@ -300,25 +300,25 @@ void resultExamples() {
   }
 
   // Pattern matching with when
-  final message = success.when(
+  final _ = success.when(
     success: (data) => 'Got: $data',
     failure: (error, exception) => 'Error: $error',
   );
 
   // Transforming data
-  final lengthResult = success.map((data) => data.length);
+  final _ = success.map((data) => data.length);
 
   // Chaining operations
-  final result = success
+  final _ = success
       .map((data) => data.toUpperCase())
       .onSuccess((data) => debugPrint('Success: $data'))
       .onFailure((error, exception) => debugPrint('Error: $error'));
 
   // Getting data with fallback
-  final data = failure.getOrDefault('Default value');
+  final _ = failure.getOrDefault('Default value');
 
   // Recovering from failure
-  final recovered = failure.recover((error) => 'Recovered value');
+  final _ = failure.recover((error) => 'Recovered value');
 }
 
 void asyncStateExamples() {
@@ -329,7 +329,7 @@ void asyncStateExamples() {
   state = AsyncState.error('Failed to load');
 
   // Pattern matching
-  final widget = state.when(
+  final _ = state.when(
     initial: () => 'Initial state',
     loading: () => 'Loading...',
     success: (data) => 'Loaded: $data',
@@ -337,7 +337,7 @@ void asyncStateExamples() {
   );
 
   // Maybe when (with fallback)
-  final result = state.maybeWhen(
+  final _ = state.maybeWhen(
     success: (data) => data,
     orElse: () => 'No data',
   );

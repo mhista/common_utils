@@ -250,7 +250,7 @@ class RateLimiter {
 /// Usage Examples
 void debouncerExamples() {
   // Basic Debouncer
-  final debouncer = Debouncer(delay: Duration(milliseconds: 500));
+  final _ = Debouncer(delay: Duration(milliseconds: 500));
   
   // In a search field
   // onChanged: (value) {
@@ -260,7 +260,7 @@ void debouncerExamples() {
   // }
 
   // Typed Debouncer
-  final typedDebouncer = TypedDebouncer<String>(
+  final _ = TypedDebouncer<String>(
     delay: Duration(milliseconds: 500),
   );
   
@@ -269,7 +269,7 @@ void debouncerExamples() {
   // });
 
   // Async Debouncer
-  final asyncDebouncer = AsyncDebouncer(
+  final _ = AsyncDebouncer(
     delay: Duration(milliseconds: 500),
   );
   
@@ -280,7 +280,7 @@ void debouncerExamples() {
 
 void throttlerExamples() {
   // Basic Throttler
-  final throttler = Throttler(duration: Duration(seconds: 1));
+  final _ = Throttler(duration: Duration(seconds: 1));
   
   // In a button
   // onPressed: () {
@@ -290,7 +290,7 @@ void throttlerExamples() {
   // }
 
   // Async Throttler
-  final asyncThrottler = AsyncThrottler(
+  final _ = AsyncThrottler(
     duration: Duration(seconds: 1),
   );
   
@@ -301,7 +301,7 @@ void throttlerExamples() {
 
 void rateLimiterExamples() {
   // Rate Limiter (max 5 calls per minute)
-  final rateLimiter = RateLimiter(
+  final _ = RateLimiter(
     maxCalls: 5,
     period: Duration(minutes: 1),
   );

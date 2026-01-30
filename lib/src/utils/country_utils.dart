@@ -529,7 +529,7 @@ void countryUtilsExamples() async {
   debugPrint('${nigeria?.name} - Capital: ${nigeria?.capital}');
 
   // Search countries
-  final results = await CountryUtils.searchCountries('United');
+  final _ = await CountryUtils.searchCountries('United');
 
   // Get states
   final states = await CountryUtils.getStates('NG');
@@ -540,10 +540,10 @@ void countryUtilsExamples() async {
   }
 
   // Get Nigerian states (offline)
-  final nigerianStates = CountryUtils.getNigerianStates();
+  final _ = CountryUtils.getNigerianStates();
 
   // Get cities
-  final cities = await CountryUtils.getCities(
+  final _ = await CountryUtils.getCities(
     countryCode: 'NG',
     stateCode: 'LA', // Lagos
   );

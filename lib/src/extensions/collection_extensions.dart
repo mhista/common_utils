@@ -429,7 +429,7 @@ extension MapExtensions<K, V> on Map<K, V> {
     final result = Map<K, dynamic>.from(this);
     other.forEach((key, value) {
       if (value is Map && result[key] is Map) {
-        result[key] = (result[key] as Map).deepMerge(value as Map);
+        result[key] = (result[key] as Map).deepMerge(value);
       } else {
         result[key] = value;
       }

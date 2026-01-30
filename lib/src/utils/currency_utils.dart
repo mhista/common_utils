@@ -10,14 +10,11 @@ class CurrencyUtils {
   
   // Multiple API endpoints for redundancy
   static const String _exchangeRatesAPI = 'https://api.exchangerate-api.com/v4/latest';
-  static const String _openExchangeRatesAPI = 'https://openexchangerates.org/api/latest.json';
   static const String _frankfurterAPI = 'https://api.frankfurter.app';
   
-  static String? _openExchangeRatesKey;
 
   /// Initialize with API keys (optional)
   static void init({String? openExchangeRatesKey}) {
-    _openExchangeRatesKey = openExchangeRatesKey;
   }
 
   // ==================== Get Exchange Rates ====================
@@ -533,7 +530,7 @@ void currencyUtilsExamples() async {
   });
 
   // Get historical rates
-  final historical = await CurrencyUtils.getHistoricalRates(
+  final _ = await CurrencyUtils.getHistoricalRates(
     date: '2024-01-01',
     baseCurrency: 'USD',
   );

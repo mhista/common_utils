@@ -417,7 +417,7 @@ void bankUtilsExamples() async {
   }
 
   // Search banks
-  final searchResults = await BankUtils.searchBanks(
+  final _ = await BankUtils.searchBanks(
     query: 'GTBank',
     country: 'nigeria',
   );

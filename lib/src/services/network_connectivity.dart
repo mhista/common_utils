@@ -508,7 +508,7 @@ void networkConnectivityExamples() async {
   debugPrint('Has internet: $hasInternet');
 
   // Ping test
-  final pingResult = await NetworkConnectivity.ping(host: 'google.com');
+  final _ = await NetworkConnectivity.ping(host: 'google.com');
   // debugPrint(pingResult);
 
   // Check connection quality
@@ -535,8 +535,8 @@ void networkConnectivityExamples() async {
   }
 
   // Get quick status
-  final isConnected = NetworkConnectivity.isConnected;
-  final connectionType = NetworkConnectivity.connectionType;
+  final _ = NetworkConnectivity.isConnected;
+  final _ = NetworkConnectivity.connectionType;
 
   // Cleanup
   NetworkConnectivity.dispose();

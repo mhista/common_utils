@@ -303,7 +303,7 @@ class FileUtils {
   }) {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final ext = extension.startsWith('.') ? extension : '.$extension';
-    return '$prefix\_$timestamp$ext';
+    return '${prefix}_$timestamp$ext';
   }
 
   /// Generate filename with timestamp
