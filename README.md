@@ -1,6 +1,6 @@
 # Common Utils2
 
-[![pub package](https://img.shields.io/pub/v/your_company_utils.svg)](https://pub.dev/packages/your_company_utils)
+[![pub package](https://img.shields.io/pub/v/common_utils2.svg)](https://pub.dev/packages/common_utils2)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A comprehensive Flutter utilities package that provides essential tools for rapid app development. From string manipulation to network monitoring, currency conversion to bank validation - everything you need in one package.
