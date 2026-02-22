@@ -1,11 +1,60 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 
-/// HTTP Client Service with Logger Integration
-/// Customizable HTTP client using Dio with interceptors and error handling
+/// Singleton HTTP Client Service
+/// 
+/// A comprehensive HTTP client built on Dio with:
+/// - Singleton pattern for shared instance across app
+/// - Automatic retry logic for failed requests
+/// - Token-based authentication with auto-refresh
+/// - Request/response logging with Talker
+/// - Type-safe error handling
+/// - File upload/download support
+/// - OpenAPI/Swagger compatible
+///
+/// Usage:
+/// ```dart
+/// // Initialize once in main.dart
+/// HttpClient.init(
+///   baseUrl: 'https://api.example.com',
+///   interceptors: [
+///     AuthInterceptor(
+///       getToken: () => storage.getString('token'),
+///       refreshToken: () async => await refreshMyToken(),
+///     ),
+///   ],
+/// );
+///
+/// // Use anywhere in your app
+/// final client = HttpClient.instance;
+/// final response = await client.get<User>('/users/1', parser: User.fromJson);
+/// ```
 class HttpClient {
+  // ==================== Singleton Setup ====================
+
+  /// Private constructor
+  HttpClient._({
+    required this.baseUrl,
+    required this.connectTimeout,
+    required this.receiveTimeout,
+    required this.sendTimeout,
+    required this.headers,
+    required this.enableLogging,
+    List<Interceptor>? interceptors,
+    Talker? talker,
+  }) {
+    _initializeDio(interceptors, talker);
+  }
+
+  /// Singleton instance
+  static HttpClient? _instance;
+
+  /// Dio instance
   late Dio _dio;
+
+  /// Configuration
   final String baseUrl;
   final Duration connectTimeout;
   final Duration receiveTimeout;
@@ -13,15 +62,72 @@ class HttpClient {
   final Map<String, String> headers;
   final bool enableLogging;
 
-  HttpClient({
-    required this.baseUrl,
-    this.connectTimeout = const Duration(seconds: 30),
-    this.receiveTimeout = const Duration(seconds: 30),
-    this.sendTimeout = const Duration(seconds: 30),
-    this.headers = const {},
-    this.enableLogging = true,
+  /// Initialize singleton instance
+  /// 
+  /// Call this once in main.dart before using the client.
+  /// 
+  /// Example:
+  /// ```dart
+  /// HttpClient.init(
+  ///   baseUrl: 'https://auth-api.merkado.site',
+  ///   connectTimeout: Duration(seconds: 30),
+  ///   headers: {'Content-Type': 'application/json'},
+  ///   enableLogging: true,
+  ///   interceptors: [
+  ///     AuthInterceptor(
+  ///       getToken: () => StorageService.instance.getString('accessToken') ?? '',
+  ///       refreshToken: () async {
+  ///         // Your token refresh logic
+  ///         return await refreshAccessToken();
+  ///       },
+  ///     ),
+  ///   ],
+  /// );
+  /// ```
+  static void init({
+    required String baseUrl,
+    Duration connectTimeout = const Duration(seconds: 30),
+    Duration receiveTimeout = const Duration(seconds: 30),
+    Duration sendTimeout = const Duration(seconds: 30),
+    Map<String, String> headers = const {},
+    bool enableLogging = true,
     List<Interceptor>? interceptors,
+    Talker? talker,
   }) {
+    _instance ??= HttpClient._(
+      baseUrl: baseUrl,
+      connectTimeout: connectTimeout,
+      receiveTimeout: receiveTimeout,
+      sendTimeout: sendTimeout,
+      headers: headers,
+      enableLogging: enableLogging,
+      interceptors: interceptors,
+      talker: talker,
+    );
+  }
+
+  /// Get singleton instance
+  /// 
+  /// Throws exception if not initialized.
+  static HttpClient get instance {
+    if (_instance == null) {
+      throw HttpClientNotInitializedException();
+    }
+    return _instance!;
+  }
+
+  /// Check if instance is initialized
+  static bool get isInitialized => _instance != null;
+
+  /// Reset singleton (useful for testing)
+  static void reset() {
+    _instance = null;
+  }
+
+  // ==================== Initialization ====================
+
+  /// Initialize Dio with interceptors
+  void _initializeDio(List<Interceptor>? customInterceptors, Talker? talker) {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
@@ -34,31 +140,58 @@ class HttpClient {
       ),
     );
 
-    // Add logging interceptor if enabled
+    // Add logging interceptor first (to log everything)
     if (enableLogging) {
-      _dio.interceptors.add(TalkerDioLogger(
-        settings: const TalkerDioLoggerSettings(
-          printRequestHeaders: true,
-          printResponseHeaders: true,
-          printResponseMessage: true,
+      _dio.interceptors.add(
+        TalkerDioLogger(
+          talker: talker,
+          settings: const TalkerDioLoggerSettings(
+            printRequestHeaders: true,
+            printResponseHeaders: true,
+            printResponseMessage: true,
+            printRequestData: true,
+            printResponseData: true,
+          ),
         ),
-    ),);
+      );
     }
 
-    // Add error interceptor
+    // Add error/retry interceptor
     _dio.interceptors.add(ErrorInterceptor());
 
-    // Add custom interceptors if provided
-    if (interceptors != null) {
-      _dio.interceptors.addAll(interceptors);
+    // Add custom interceptors (like Auth)
+    if (customInterceptors != null) {
+      _dio.interceptors.addAll(customInterceptors);
     }
   }
 
-  /// Get Dio instance for custom configurations
+  /// Get raw Dio instance for advanced use cases
   Dio get dio => _dio;
 
   // ==================== GET Requests ====================
 
+  /// Make a GET request
+  /// 
+  /// [path] - API endpoint path (e.g., '/users/1')
+  /// [queryParameters] - URL query parameters
+  /// [options] - Additional Dio options
+  /// [cancelToken] - Token to cancel the request
+  /// [parser] - Function to parse response data to type T
+  /// 
+  /// Example:
+  /// ```dart
+  /// final response = await client.get<User>(
+  ///   '/users/1',
+  ///   parser: (data) => User.fromJson(data),
+  /// );
+  /// 
+  /// if (response.isSuccess) {
+  ///   final user = response.data;
+  ///   print(user.name);
+  /// } else {
+  ///   print(response.error!.message);
+  /// }
+  /// ```
   Future<ApiResponse<T>> get<T>(
     String path, {
     Map<String, dynamic>? queryParameters,
@@ -86,6 +219,26 @@ class HttpClient {
 
   // ==================== POST Requests ====================
 
+  /// Make a POST request
+  /// 
+  /// [path] - API endpoint path (e.g., '/auth/login')
+  /// [data] - Request body (will be JSON encoded)
+  /// [queryParameters] - URL query parameters
+  /// [options] - Additional Dio options
+  /// [cancelToken] - Token to cancel the request
+  /// [parser] - Function to parse response data to type T
+  /// 
+  /// Example:
+  /// ```dart
+  /// final response = await client.post<LoginResponse>(
+  ///   '/auth/login',
+  ///   data: {
+  ///     'email': 'user@example.com',
+  ///     'password': 'password123',
+  ///   },
+  ///   parser: (data) => LoginResponse.fromJson(data),
+  /// );
+  /// ```
   Future<ApiResponse<T>> post<T>(
     String path, {
     dynamic data,
@@ -115,6 +268,19 @@ class HttpClient {
 
   // ==================== PUT Requests ====================
 
+  /// Make a PUT request (full update)
+  /// 
+  /// Example:
+  /// ```dart
+  /// final response = await client.put<User>(
+  ///   '/users/1',
+  ///   data: {
+  ///     'name': 'John Doe',
+  ///     'email': 'john@example.com',
+  ///   },
+  ///   parser: (data) => User.fromJson(data),
+  /// );
+  /// ```
   Future<ApiResponse<T>> put<T>(
     String path, {
     dynamic data,
@@ -144,6 +310,16 @@ class HttpClient {
 
   // ==================== PATCH Requests ====================
 
+  /// Make a PATCH request (partial update)
+  /// 
+  /// Example:
+  /// ```dart
+  /// final response = await client.patch<User>(
+  ///   '/users/1',
+  ///   data: {'name': 'Jane Doe'}, // Only update name
+  ///   parser: (data) => User.fromJson(data),
+  /// );
+  /// ```
   Future<ApiResponse<T>> patch<T>(
     String path, {
     dynamic data,
@@ -173,6 +349,16 @@ class HttpClient {
 
   // ==================== DELETE Requests ====================
 
+  /// Make a DELETE request
+  /// 
+  /// Example:
+  /// ```dart
+  /// final response = await client.delete<void>('/users/1');
+  /// 
+  /// if (response.isSuccess) {
+  ///   print('User deleted');
+  /// }
+  /// ```
   Future<ApiResponse<T>> delete<T>(
     String path, {
     dynamic data,
@@ -202,6 +388,28 @@ class HttpClient {
 
   // ==================== File Upload ====================
 
+  /// Upload a single file
+  /// 
+  /// [path] - API endpoint path
+  /// [file] - File to upload
+  /// [fileKey] - Form field name for the file (default: 'file')
+  /// [data] - Additional form data
+  /// [onSendProgress] - Callback for upload progress
+  /// 
+  /// Example:
+  /// ```dart
+  /// final file = File('/path/to/image.jpg');
+  /// final response = await client.uploadFile<UploadResponse>(
+  ///   '/upload',
+  ///   file,
+  ///   fileKey: 'image',
+  ///   data: {'title': 'My Image'},
+  ///   onSendProgress: (sent, total) {
+  ///     print('Progress: ${(sent / total * 100).toStringAsFixed(0)}%');
+  ///   },
+  ///   parser: (data) => UploadResponse.fromJson(data),
+  /// );
+  /// ```
   Future<ApiResponse<T>> uploadFile<T>(
     String path,
     File file, {
@@ -238,6 +446,22 @@ class HttpClient {
     }
   }
 
+  /// Upload multiple files
+  /// 
+  /// Example:
+  /// ```dart
+  /// final files = [
+  ///   File('/path/to/image1.jpg'),
+  ///   File('/path/to/image2.jpg'),
+  /// ];
+  /// 
+  /// final response = await client.uploadFiles<UploadResponse>(
+  ///   '/upload/batch',
+  ///   files,
+  ///   fileKey: 'images',
+  ///   parser: (data) => UploadResponse.fromJson(data),
+  /// );
+  /// ```
   Future<ApiResponse<T>> uploadFiles<T>(
     String path,
     List<File> files, {
@@ -280,22 +504,47 @@ class HttpClient {
 
   // ==================== File Download ====================
 
+  /// Download a file
+  /// 
+  /// [url] - File URL to download
+  /// [savePath] - Local path where file will be saved
+  /// [onReceiveProgress] - Callback for download progress
+  /// 
+  /// Example:
+  /// ```dart
+  /// final response = await client.downloadFile(
+  ///   'https://example.com/file.pdf',
+  ///   '/storage/downloads/file.pdf',
+  ///   onReceiveProgress: (received, total) {
+  ///     print('Progress: ${(received / total * 100).toStringAsFixed(0)}%');
+  ///   },
+  /// );
+  /// 
+  /// if (response.isSuccess) {
+  ///   print('File saved to: ${response.data}');
+  /// }
+  /// ```
   Future<ApiResponse<String>> downloadFile(
     String url,
     String savePath, {
     ProgressCallback? onReceiveProgress,
     CancelToken? cancelToken,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
   }) async {
     try {
       await _dio.download(
         url,
         savePath,
+        queryParameters: queryParameters,
+        options: options,
         onReceiveProgress: onReceiveProgress,
         cancelToken: cancelToken,
       );
 
       return ApiResponse.success(
         data: savePath,
+        statusCode: 200,
         message: 'File downloaded successfully',
       );
     } catch (e) {
@@ -305,6 +554,7 @@ class HttpClient {
 
   // ==================== Error Handling ====================
 
+  /// Handle errors and convert to ApiResponse
   ApiResponse<T> _handleError<T>(dynamic error) {
     if (error is DioException) {
       return ApiResponse.error(
@@ -319,6 +569,7 @@ class HttpClient {
     );
   }
 
+  /// Convert DioException to ApiError
   ApiError _dioErrorToApiError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
@@ -347,7 +598,7 @@ class HttpClient {
       case DioExceptionType.connectionError:
         return ApiError(
           type: ApiErrorType.network,
-          message: 'No internet connection',
+          message: 'No internet connection. Please check your network.',
         );
 
       case DioExceptionType.badCertificate:
@@ -364,42 +615,73 @@ class HttpClient {
     }
   }
 
+  /// Extract error message from response
   String _extractErrorMessage(Response? response) {
     if (response?.data is Map) {
       final data = response!.data as Map<String, dynamic>;
-      return data['message'] ?? data['error'] ?? 'Server error occurred';
+      // Try common error message fields
+      return data['message'] as String? ??
+          data['error'] as String? ??
+          data['detail'] as String? ??
+          data['msg'] as String? ??
+          'Server error occurred';
     }
     return response?.statusMessage ?? 'Server error occurred';
   }
 
   // ==================== Utility Methods ====================
 
+  /// Update base URL
+  /// 
+  /// Useful for switching between environments.
   void updateBaseUrl(String newBaseUrl) {
     _dio.options.baseUrl = newBaseUrl;
   }
 
+  /// Update headers
+  /// 
+  /// Add or update default headers for all requests.
   void updateHeaders(Map<String, String> newHeaders) {
     _dio.options.headers.addAll(newHeaders);
   }
 
+  /// Set authentication token
+  /// 
+  /// Adds Bearer token to all requests.
   void setAuthToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
+  /// Remove authentication token
   void removeAuthToken() {
     _dio.options.headers.remove('Authorization');
   }
 
+  /// Remove a specific header
+  void removeHeader(String key) {
+    _dio.options.headers.remove(key);
+  }
+
+  /// Clear all custom headers
   void clearHeaders() {
     _dio.options.headers.clear();
+    // Re-add content type
+    _dio.options.headers['Content-Type'] = 'application/json';
   }
+
+  /// Get current headers
+  Map<String, dynamic> get currentHeaders => Map.from(_dio.options.headers);
+
+  /// Get current base URL
+  String get currentBaseUrl => _dio.options.baseUrl;
 }
 
 // ==================== Interceptors ====================
 
-
-
 /// Error Interceptor with Retry Logic
+/// 
+/// Automatically retries failed requests with exponential backoff.
+/// Retries on: timeout, connection errors, 5xx server errors.
 class ErrorInterceptor extends Interceptor {
   final int maxRetries;
   final Duration retryDelay;
@@ -411,38 +693,60 @@ class ErrorInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (_shouldRetry(err) && err.requestOptions.extra['retryCount'] == null) {
+    // Initialize retry count
+    if (err.requestOptions.extra['retryCount'] == null) {
       err.requestOptions.extra['retryCount'] = 0;
     }
 
-    final retryCount = err.requestOptions.extra['retryCount'] ?? 0;
+    final retryCount = err.requestOptions.extra['retryCount'] as int;
 
+    // Check if should retry
     if (retryCount < maxRetries && _shouldRetry(err)) {
+      // Increment retry count
       err.requestOptions.extra['retryCount'] = retryCount + 1;
-      
+
+      // Wait before retry (exponential backoff)
       await Future.delayed(retryDelay * (retryCount + 1));
 
       try {
+        // Retry the request
         final response = await Dio().fetch(err.requestOptions);
-        handler.resolve(response);
+        return handler.resolve(response);
       } catch (e) {
-        handler.next(err);
+        // If retry fails, continue with error
+        return handler.next(err);
       }
-    } else {
-      handler.next(err);
     }
+
+    // No more retries, pass error
+    handler.next(err);
   }
 
+  /// Determine if request should be retried
   bool _shouldRetry(DioException err) {
     return err.type == DioExceptionType.connectionTimeout ||
         err.type == DioExceptionType.sendTimeout ||
         err.type == DioExceptionType.receiveTimeout ||
         err.type == DioExceptionType.connectionError ||
-        (err.response?.statusCode ?? 0) >= 500;
+        (err.response?.statusCode != null && err.response!.statusCode! >= 500);
   }
 }
 
 /// Auth Interceptor
+/// 
+/// Handles token injection and automatic token refresh on 401 errors.
+/// 
+/// Usage:
+/// ```dart
+/// AuthInterceptor(
+///   getToken: () => StorageService.instance.getString('accessToken') ?? '',
+///   refreshToken: () async {
+///     final response = await refreshMyToken();
+///     await StorageService.instance.setString('accessToken', response.token);
+///     return response.token;
+///   },
+/// )
+/// ```
 class AuthInterceptor extends Interceptor {
   final String Function() getToken;
   final Future<String> Function()? refreshToken;
@@ -454,6 +758,7 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    // Add token to request headers
     final token = getToken();
     if (token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -463,24 +768,34 @@ class AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
+    // Handle 401 Unauthorized
     if (err.response?.statusCode == 401 && refreshToken != null) {
       try {
+        // Refresh token
         final newToken = await refreshToken!();
+
+        // Update request with new token
         err.requestOptions.headers['Authorization'] = 'Bearer $newToken';
-        
+
+        // Retry original request
         final response = await Dio().fetch(err.requestOptions);
-        handler.resolve(response);
+        return handler.resolve(response);
       } catch (e) {
-        handler.next(err);
+        // Token refresh failed, pass error
+        return handler.next(err);
       }
-    } else {
-      handler.next(err);
     }
+
+    // Not a 401 or no refresh function, pass error
+    handler.next(err);
   }
 }
 
 // ==================== API Response Models ====================
 
+/// API Response wrapper
+/// 
+/// Wraps all API responses for type-safe handling.
 class ApiResponse<T> {
   final T? data;
   final ApiError? error;
@@ -496,6 +811,7 @@ class ApiResponse<T> {
     required this.isSuccess,
   });
 
+  /// Create success response
   factory ApiResponse.success({
     required T data,
     int? statusCode,
@@ -509,16 +825,31 @@ class ApiResponse<T> {
     );
   }
 
+  /// Create error response
   factory ApiResponse.error({
     required ApiError error,
   }) {
     return ApiResponse._(
       error: error,
+      statusCode: error.statusCode,
       isSuccess: false,
     );
   }
+
+  /// Check if response is error
+  bool get isError => !isSuccess;
+
+  @override
+  String toString() {
+    if (isSuccess) {
+      return 'ApiResponse.success(data: $data, statusCode: $statusCode)';
+    } else {
+      return 'ApiResponse.error(error: ${error?.message}, statusCode: $statusCode)';
+    }
+  }
 }
 
+/// API Error details
 class ApiError {
   final ApiErrorType type;
   final String message;
@@ -531,13 +862,60 @@ class ApiError {
     this.statusCode,
     this.data,
   });
+
+  /// Check if error is network-related
+  bool get isNetworkError =>
+      type == ApiErrorType.network ||
+      type == ApiErrorType.timeout ||
+      type == ApiErrorType.connectionError;
+
+  /// Check if error is server-related
+  bool get isServerError => type == ApiErrorType.server;
+
+  /// Check if error is client-related (4xx)
+  bool get isClientError =>
+      statusCode != null && statusCode! >= 400 && statusCode! < 500;
+
+  @override
+  String toString() {
+    return 'ApiError(type: $type, message: $message, statusCode: $statusCode)';
+  }
 }
 
+/// API Error types
 enum ApiErrorType {
+  /// Network connection error
   network,
+
+  /// Request timeout
   timeout,
+
+  /// Server error (5xx)
   server,
+
+  /// Request cancelled
   cancelled,
+
+  /// SSL certificate error
   ssl,
+
+  /// Connection error
+  connectionError,
+
+  /// Unknown error
   unknown,
+}
+
+// ==================== Exceptions ====================
+
+/// Exception thrown when HttpClient is used without initialization
+class HttpClientNotInitializedException implements Exception {
+  final String message;
+
+  HttpClientNotInitializedException([
+    this.message = 'HttpClient not initialized. Call HttpClient.init() first.',
+  ]);
+
+  @override
+  String toString() => 'HttpClientNotInitializedException: $message';
 }

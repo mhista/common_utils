@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'managers/display_manager.dart';
-import 'managers/token_manager.dart';
+import 'managers/notification_token_manager.dart';
 import 'managers/topic_manager.dart';
 import 'notifications.dart';
 
@@ -24,7 +24,7 @@ class CommonNotificationService {
   static final CommonNotificationService instance =
       CommonNotificationService._();
 
-  late TokenManager _tokens;
+  late NotificationTokenManager _tokens;
   late TopicManager _topics;
   late DisplayManager _display;
   late INotificationHandler _handler;
@@ -49,7 +49,7 @@ class CommonNotificationService {
     final fcm = fm.FirebaseMessaging.instance;
     final plugin = FlutterLocalNotificationsPlugin();
 
-    _tokens = TokenManager(fcm, onRefreshed: config.onTokenRefreshed);
+    _tokens = NotificationTokenManager(fcm, onRefreshed: config.onTokenRefreshed);
     _topics = TopicManager(fcm);
     _display = DisplayManager(
       plugin,

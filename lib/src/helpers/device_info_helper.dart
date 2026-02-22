@@ -58,6 +58,16 @@ class DeviceInfoHelper {
     return platformName;
   }
 
+  Future<String> getDeviceId() async {
+    if (isAndroid) {
+      final info = await _deviceInfo.androidInfo;
+      return info.id;
+    } else if (isIOS) {
+      return 'Apple';
+    }
+    return platformName;
+  }
+
   Future<String> getOSVersion() async {
     if (isAndroid) {
       final info = await _deviceInfo.androidInfo;
@@ -67,6 +77,29 @@ class DeviceInfoHelper {
       return info.systemVersion;
     }
     return 'Unknown';
+  }
+
+  Future<String> getPlatformInfo() async {
+    if (isAndroid) {
+      final info = await _deviceInfo.androidInfo;
+      return "Android ${info.version.release}";
+    } else if (isIOS) {
+      final info = await _deviceInfo.iosInfo;
+      return "iOS ${info.systemVersion}"; // e.g. "iPhone 12 Pro (iOS 14.4)"
+    }
+    return 'Unknown';
+  }
+
+  Future<String> getDeviceInfo() async {
+    if (isAndroid) {
+      final info = await _deviceInfo.androidInfo;
+      return "${info.manufacturer} ${info.model}";
+    } else if (isIOS) {
+      final info = await _deviceInfo.iosInfo;
+      return "${info.name} ${info.utsname.machine}"; // e.g. "iPhone 12 Pro"
+    }
+
+    return platformName;
   }
 
   // App Information
@@ -79,6 +112,8 @@ class DeviceInfoHelper {
   bool get isReleaseMode => kReleaseMode;
   bool get isDebugMode => kDebugMode;
   bool get isProfileMode => kProfileMode;
+  String get platformId =>
+      '${platformName}_${getDeviceModel()}_${getOSVersion()}';
 
   Future<Map<String, dynamic>> getAllInfo() async {
     return {

@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart' as fm;
 import 'package:flutter/foundation.dart';
 
-class TokenManager {
+class NotificationTokenManager {
   final fm.FirebaseMessaging _fcm;
   final Future<void> Function(String)? _onRefreshed;
   final _controller = StreamController<String>.broadcast();
   StreamSubscription<String>? _sub;
   String? _current;
 
-  TokenManager(this._fcm, {Future<void> Function(String)? onRefreshed})
+  NotificationTokenManager(this._fcm, {Future<void> Function(String)? onRefreshed})
       : _onRefreshed = onRefreshed;
 
   String? get currentToken => _current;

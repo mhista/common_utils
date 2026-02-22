@@ -1,7 +1,6 @@
 import 'dart:convert';
+import 'package:common_utils2/common_utils2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../constants/storage_keys.dart';
 
 /// Storage Service
 /// Type-safe wrapper around SharedPreferences with support for complex data types
@@ -265,37 +264,37 @@ class StorageExample {
     required Map<String, dynamic> profile,
   }) async {
     await _storage.setBatch({
-      StorageKeys.authToken: token,
+      // StorageKeys.authToken: token,
       StorageKeys.userId: userId,
-      StorageKeys.userProfile: profile,
-      StorageKeys.isLoggedIn: true,
+      StorageKeys.userAvatarUrl: profile,
+      // StorageKeys.isLoggedIn: true,
     });
   }
 
   // Get user data
   Map<String, dynamic>? getUserData() {
-    if (!_storage.getBoolOrDefault(StorageKeys.isLoggedIn, false)) {
-      return null;
-    }
+    // if (!_storage.getBoolOrDefault(StorageKeys.isLoggedIn, false)) {
+    //   return null;
+    // }
 
     return {
-      'token': _storage.getString(StorageKeys.authToken),
+      // 'token': _storage.getString(StorageKeys.authToken),
       'userId': _storage.getString(StorageKeys.userId),
-      'profile': _storage.getJson(StorageKeys.userProfile),
+      'profile': _storage.getJson(StorageKeys.userAvatarUrl),
     };
   }
 
   // Clear user data on logout
-  Future<void> logout() async {
-    await _storage.removeBatch([
-      StorageKeys.authToken,
-      StorageKeys.refreshToken,
-      StorageKeys.userId,
-      StorageKeys.userEmail,
-      StorageKeys.userProfile,
-    ]);
-    await _storage.setBool(StorageKeys.isLoggedIn, false);
-  }
+  // Future<void> logout() async {
+  //   await _storage.removeBatch([
+  //     StorageKeys.authToken,
+  //     StorageKeys.refreshToken,
+  //     StorageKeys.userId,
+  //     StorageKeys.userEmail,
+  //     StorageKeys.userAvatarUrl,
+  //   ]);
+  //   // await _storage.setBool(StorageKeys.isLoggedIn, false);
+  // }
 
   // Save app settings
   Future<void> saveSettings({

@@ -73,7 +73,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  common_utils2: ^1.0.0
+  common_utils2: ^1.0.1
 ```
 
 Then run:

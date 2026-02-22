@@ -11,10 +11,10 @@
 //   build_runner: ^2.4.6
 
 import 'dart:convert';
+import 'package:common_utils2/common_utils2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../constants/storage_keys.dart';
 
 /// Centralized singleton local storage service using Hive
 /// Automatically handles user-specific data isolation
@@ -717,44 +717,44 @@ class HiveStorageExample {
   }
 
   // Save user data
-  Future<void> saveUserData({
-    required String token,
-    required String userId,
-    required Map<String, dynamic> profile,
-  }) async {
-    await _storage.setBatch({
-      StorageKeys.authToken: token,
-      StorageKeys.userId: userId,
-      StorageKeys.isLoggedIn: true,
-    });
-    await _storage.setJson(StorageKeys.userProfile, profile);
-  }
+  // Future<void> saveUserData({
+  //   required String token,
+  //   required String userId,
+  //   required Map<String, dynamic> profile,
+  // }) async {
+  //   await _storage.setBatch({
+  //     StorageKeys.authToken: token,
+  //     StorageKeys.userId: userId,
+  //     StorageKeys.isLoggedIn: true,
+  //   });
+  //   await _storage.setJson(StorageKeys.userAvatarUrl, profile);
+  // }
 
   // Get user data
-  Map<String, dynamic>? getUserData() {
-    if (!_storage.getBoolOrDefault(StorageKeys.isLoggedIn, false)) {
-      return null;
-    }
+  // Map<String, dynamic>? getUserData() {
+  //   if (!_storage.getBoolOrDefault(StorageKeys.isLoggedIn, false)) {
+  //     return null;
+  //   }
 
-    return {
-      'token': _storage.getString(StorageKeys.authToken),
-      'userId': _storage.getString(StorageKeys.userId),
-      'profile': _storage.getJson(StorageKeys.userProfile),
-    };
-  }
+  //   return {
+  //     'token': _storage.getString(StorageKeys.authToken),
+  //     'userId': _storage.getString(StorageKeys.userId),
+  //     'profile': _storage.getJson(StorageKeys.userAvatarUrl),
+  //   };
+  // }
 
   // Logout
-  Future<void> logout() async {
-    await _storage.removeBatch([
-      StorageKeys.authToken,
-      StorageKeys.refreshToken,
-      StorageKeys.userId,
-      StorageKeys.userEmail,
-      StorageKeys.userProfile,
-    ]);
-    await _storage.setBool(StorageKeys.isLoggedIn, false);
-    await _storage.clearUser();
-  }
+  // Future<void> logout() async {
+  //   await _storage.removeBatch([
+  //     StorageKeys.authToken,
+  //     StorageKeys.refreshToken,
+  //     StorageKeys.userId,
+  //     StorageKeys.userEmail,
+  //     StorageKeys.userAvatarUrl,
+  //   ]);
+  //   await _storage.setBool(StorageKeys.isLoggedIn, false);
+  //   await _storage.clearUser();
+  // }
 
   // Save app settings (global)
   Future<void> saveSettings({

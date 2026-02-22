@@ -41,15 +41,21 @@ export 'src/enums/common_enums.dart';
 
 /// Hive-based local storage service with user-specific data isolation
 /// Singleton pattern for persistent data storage using Hive
-export 'src/services/hive_storage.dart';
+export 'src/services/storage/hive_storage.dart';
 
 /// SharedPreferences-based storage service for simple key-value persistence
 /// Alternative to Hive for lightweight storage needs
-export 'src/services/shared_pref_storage.dart';
+export 'src/services/storage/shared_pref_storage.dart';
+
+
+/// Secured storage storage service for secured key-value persistence
+/// Alternative to Hive and sharedpreferences for secure storage needs
+export 'src/services/storage/secure_storage_service.dart';
+export 'src/services/storage/secure_storage_exports.dart';
 
 /// HTTP client service for making API requests with built-in error handling
 /// Supports GET, POST, PUT, DELETE with authentication and interceptors
-export 'src/services/http_client.dart';
+export 'src/services/http/http_client.dart';
 
 /// Location service for getting device GPS coordinates and location updates
 /// Handles permissions and provides both one-time and continuous location tracking
@@ -62,6 +68,14 @@ export 'src/services/logger_service.dart';
 /// Network connectivity service for monitoring internet connection status
 /// Provides real-time connectivity updates and connection type detection
 export 'src/services/network_connectivity.dart';
+
+/// HTTP auth interceptor for attaching tokens and handling auth errors
+/// Used by `http_client` to automatically add authorization headers
+export 'src/services/auth/auth_interceptor.dart';
+
+/// Token manager for storing and refreshing authentication tokens
+/// Provides secure token lifetime management and expiry checks
+export 'src/services/auth/token_manager.dart';
 
 // ============================================================================
 // VALIDATORS
@@ -132,6 +146,34 @@ export 'src/extensions/text_extensions.dart';
 /// Provides a type-safe way to handle operations that can succeed or fail
 /// Usage: Result<T> where T is the success data type
 export 'src/models/result.dart';
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+/// Notification payload model for standardized message content
+export 'src/notifications/notification_payload.dart';
+
+/// Notification configuration utilities for channels and behavior
+export 'src/notifications/notification_config.dart';
+
+/// Notification channel helpers for platform-specific channel creation
+export 'src/notifications/notification_channel.dart';
+
+/// High-level notifications API for scheduling and showing notifications
+export 'src/notifications/notifications.dart';
+
+/// Common notification service abstraction for platform implementations
+export 'src/notifications/common_notification_service.dart';
+
+/// Notification managers (topic, token, display) for handling subscriptions
+export 'src/notifications/managers/topic_manager.dart';
+export 'src/notifications/managers/notification_token_manager.dart';
+export 'src/notifications/managers/display_manager.dart';
+
+/// Notification handler interfaces and default implementations
+export 'src/notifications/handlers/i_notification_handler.dart';
+export 'src/notifications/handlers/default_notification_handler.dart';
 
 // ============================================================================
 // UTILITIES
