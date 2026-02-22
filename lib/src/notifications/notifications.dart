@@ -1,6 +1,6 @@
 
 export 'common_notification_service.dart'
-    show CommonNotificationService, _fcmBackgroundHandler;
+    show CommonNotificationService;
 export 'notification_config.dart';
 export 'notification_channel.dart';
 export 'notification_payload.dart';
