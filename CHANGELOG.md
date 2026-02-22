@@ -13,3 +13,5 @@
 * Responsive design helpers
 * Logger with Talker integration
 * Nigerian-specific features (BVN, NIN, banks, states)
+
+## 1.0.1
