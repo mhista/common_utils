@@ -7,6 +7,7 @@ import 'package:talker_dio_logger/talker_dio_logger.dart';
 /// 
 /// A comprehensive HTTP client built on Dio with:
 /// - Singleton pattern for shared instance across app
+/// - Dynamic interceptor management (add/remove after init)
 /// - Automatic retry logic for failed requests
 /// - Token-based authentication with auto-refresh
 /// - Request/response logging with Talker
@@ -26,6 +27,9 @@ import 'package:talker_dio_logger/talker_dio_logger.dart';
 ///     ),
 ///   ],
 /// );
+///
+/// // Add interceptors later
+/// HttpClient.instance.addInterceptor(MyCustomInterceptor());
 ///
 /// // Use anywhere in your app
 /// final client = HttpClient.instance;
@@ -61,6 +65,12 @@ class HttpClient {
   final Duration sendTimeout;
   final Map<String, String> headers;
   final bool enableLogging;
+
+  /// Track logging interceptor reference
+  TalkerDioLogger? _loggingInterceptor;
+
+  /// Track error interceptor reference
+  ErrorInterceptor? _errorInterceptor;
 
   /// Initialize singleton instance
   /// 
@@ -142,22 +152,22 @@ class HttpClient {
 
     // Add logging interceptor first (to log everything)
     if (enableLogging) {
-      _dio.interceptors.add(
-        TalkerDioLogger(
-          talker: talker,
-          settings: const TalkerDioLoggerSettings(
-            printRequestHeaders: true,
-            printResponseHeaders: true,
-            printResponseMessage: true,
-            printRequestData: true,
-            printResponseData: true,
-          ),
+      _loggingInterceptor = TalkerDioLogger(
+        talker: talker,
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: true,
+          printResponseHeaders: true,
+          printResponseMessage: true,
+          printRequestData: true,
+          printResponseData: true,
         ),
       );
+      _dio.interceptors.add(_loggingInterceptor!);
     }
 
     // Add error/retry interceptor
-    _dio.interceptors.add(ErrorInterceptor());
+    _errorInterceptor = ErrorInterceptor();
+    _dio.interceptors.add(_errorInterceptor!);
 
     // Add custom interceptors (like Auth)
     if (customInterceptors != null) {
@@ -167,6 +177,230 @@ class HttpClient {
 
   /// Get raw Dio instance for advanced use cases
   Dio get dio => _dio;
+
+  // ==================== Interceptor Management ====================
+
+  /// Add a single interceptor
+  /// 
+  /// The interceptor will be added after logging and error interceptors
+  /// but you can control the position with the [index] parameter.
+  /// 
+  /// Example:
+  /// ```dart
+  /// // Add auth interceptor after initialization
+  /// HttpClient.instance.addInterceptor(
+  ///   AuthInterceptor(
+  ///     getToken: () => token,
+  ///     refreshToken: () async => await refresh(),
+  ///   ),
+  /// );
+  /// 
+  /// // Add at specific position (0 = first)
+  /// HttpClient.instance.addInterceptor(
+  ///   MyInterceptor(),
+  ///   index: 0,
+  /// );
+  /// ```
+  void addInterceptor(Interceptor interceptor, {int? index}) {
+    if (index != null) {
+      _dio.interceptors.insert(index, interceptor);
+    } else {
+      _dio.interceptors.add(interceptor);
+    }
+  }
+
+  /// Add multiple interceptors at once
+  /// 
+  /// Example:
+  /// ```dart
+  /// HttpClient.instance.addInterceptors([
+  ///   AuthInterceptor(...),
+  ///   CacheInterceptor(),
+  ///   CustomHeaderInterceptor(),
+  /// ]);
+  /// ```
+  void addInterceptors(List<Interceptor> interceptors) {
+    _dio.interceptors.addAll(interceptors);
+  }
+
+  /// Remove a specific interceptor
+  /// 
+  /// Returns true if the interceptor was found and removed.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final authInterceptor = AuthInterceptor(...);
+  /// HttpClient.instance.addInterceptor(authInterceptor);
+  /// 
+  /// // Later, remove it
+  /// HttpClient.instance.removeInterceptor(authInterceptor);
+  /// ```
+  bool removeInterceptor(Interceptor interceptor) {
+    final index = _dio.interceptors.indexOf(interceptor);
+    if (index != -1) {
+      _dio.interceptors.removeAt(index);
+      return true;
+    }
+    return false;
+  }
+
+  /// Remove interceptor by type
+  /// 
+  /// Removes the first interceptor matching the given type.
+  /// Returns true if an interceptor was found and removed.
+  /// 
+  /// Example:
+  /// ```dart
+  /// // Remove any AuthInterceptor
+  /// HttpClient.instance.removeInterceptorByType<AuthInterceptor>();
+  /// ```
+  bool removeInterceptorByType<T extends Interceptor>() {
+    final index = _dio.interceptors.indexWhere((i) => i is T);
+    if (index != -1) {
+      _dio.interceptors.removeAt(index);
+      return true;
+    }
+    return false;
+  }
+
+  /// Remove all interceptors of a specific type
+  /// 
+  /// Returns the number of interceptors removed.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final count = HttpClient.instance.removeAllInterceptorsByType<AuthInterceptor>();
+  /// print('Removed $count auth interceptors');
+  /// ```
+  int removeAllInterceptorsByType<T extends Interceptor>() {
+    int count = 0;
+    _dio.interceptors.removeWhere((i) {
+      if (i is T) {
+        count++;
+        return true;
+      }
+      return false;
+    });
+    return count;
+  }
+
+  /// Clear all custom interceptors
+  /// 
+  /// This removes all interceptors except the built-in logging and error interceptors.
+  /// 
+  /// Example:
+  /// ```dart
+  /// // Clear all custom interceptors
+  /// HttpClient.instance.clearCustomInterceptors();
+  /// ```
+  void clearCustomInterceptors() {
+    // Keep only logging and error interceptors
+    _dio.interceptors.clear();
+    
+    if (_loggingInterceptor != null) {
+      _dio.interceptors.add(_loggingInterceptor!);
+    }
+    
+    if (_errorInterceptor != null) {
+      _dio.interceptors.add(_errorInterceptor!);
+    }
+  }
+
+  /// Clear ALL interceptors (including logging and error interceptors)
+  /// 
+  /// ⚠️ Use with caution - this removes even the built-in interceptors.
+  /// 
+  /// Example:
+  /// ```dart
+  /// HttpClient.instance.clearAllInterceptors();
+  /// ```
+  void clearAllInterceptors() {
+    _dio.interceptors.clear();
+    _loggingInterceptor = null;
+    _errorInterceptor = null;
+  }
+
+  /// Get list of all current interceptors
+  /// 
+  /// Returns an unmodifiable list of interceptors.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final interceptors = HttpClient.instance.getInterceptors();
+  /// print('Active interceptors: ${interceptors.length}');
+  /// 
+  /// for (var interceptor in interceptors) {
+  ///   print(interceptor.runtimeType);
+  /// }
+  /// ```
+  List<Interceptor> getInterceptors() {
+    return List.unmodifiable(_dio.interceptors);
+  }
+
+  /// Check if a specific interceptor exists
+  /// 
+  /// Example:
+  /// ```dart
+  /// final authInterceptor = AuthInterceptor(...);
+  /// if (HttpClient.instance.hasInterceptor(authInterceptor)) {
+  ///   print('Auth interceptor is active');
+  /// }
+  /// ```
+  bool hasInterceptor(Interceptor interceptor) {
+    return _dio.interceptors.contains(interceptor);
+  }
+
+  /// Check if an interceptor of a specific type exists
+  /// 
+  /// Example:
+  /// ```dart
+  /// if (HttpClient.instance.hasInterceptorOfType<AuthInterceptor>()) {
+  ///   print('Auth interceptor is active');
+  /// }
+  /// ```
+  bool hasInterceptorOfType<T extends Interceptor>() {
+    return _dio.interceptors.any((i) => i is T);
+  }
+
+  /// Replace an interceptor
+  /// 
+  /// Replaces the old interceptor with a new one at the same position.
+  /// Returns true if the old interceptor was found and replaced.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final oldAuth = AuthInterceptor(...);
+  /// final newAuth = AuthInterceptor(...);
+  /// 
+  /// HttpClient.instance.replaceInterceptor(oldAuth, newAuth);
+  /// ```
+  bool replaceInterceptor(Interceptor oldInterceptor, Interceptor newInterceptor) {
+    final index = _dio.interceptors.indexOf(oldInterceptor);
+    if (index != -1) {
+      _dio.interceptors[index] = newInterceptor;
+      return true;
+    }
+    return false;
+  }
+
+  /// Replace interceptor by type
+  /// 
+  /// Replaces the first interceptor of the specified type with a new one.
+  /// Returns true if an interceptor was found and replaced.
+  /// 
+  /// Example:
+  /// ```dart
+  /// final newAuth = AuthInterceptor(...);
+  /// HttpClient.instance.replaceInterceptorByType<AuthInterceptor>(newAuth);
+  /// ```
+  bool replaceInterceptorByType<T extends Interceptor>(Interceptor newInterceptor) {
+    final index = _dio.interceptors.indexWhere((i) => i is T);
+    if (index != -1) {
+      _dio.interceptors[index] = newInterceptor;
+      return true;
+    }
+    return false;
+  }
 
   // ==================== GET Requests ====================
 

@@ -15,3 +15,5 @@
 * Nigerian-specific features (BVN, NIN, banks, states)
 
 ## 1.0.1
+ * updated httpclient methods
+## 1.0.2
