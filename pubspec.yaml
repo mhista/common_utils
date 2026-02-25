@@ -1,6 +1,6 @@
 name: common_utils2
 description: A comprehensive Flutter utilities package with 24+ utilities for rapid app development. Includes banking, currency conversion, networking, and more.
-version: 1.0.2
+version: 1.0.3
 homepage: https://github.com/mhista/common_utils
 repository: https://github.com/mhista/common_utils
 issue_tracker: https://github.com/mhista/common_utils/issues
@@ -26,11 +26,11 @@ dependencies:
 
   
   # Location
-  geolocator: ^11.0.0
-  geocoding: ^3.0.0
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
   
   # Device Info
-  device_info_plus: ^10.1.0
+  device_info_plus: ^12.3.0
   package_info_plus: ^9.0.0
     
   # Logging (Talker)
@@ -61,6 +61,19 @@ dependencies:
 
   # storage
   flutter_secure_storage: ^10.0.0
+  video_player: ^2.11.0
+  chewie: ^1.13.0
+  cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.1
+  visibility_detector: ^0.4.0+2
+  permission_handler: ^12.0.1
+  flutter_bloc: ^9.1.1
+  equatable: ^2.0.8
+  pdfx: ^2.9.2
+  freezed_annotation: ^3.1.0
+  json_annotation: ^4.11.0
+  # bloc_test: ^10.0.0
+  # pdf_render: ^1.4.7
 
 
   
@@ -69,6 +82,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  build_runner: ^2.11.1
+  freezed: ^3.2.5
+  json_serializable: ^6.13.0
 
 
 # For information on the generic Dart part of this file, see the

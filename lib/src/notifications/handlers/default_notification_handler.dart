@@ -1,4 +1,5 @@
-import '../notifications.dart';
+import 'package:common_utils2/common_utils2.dart';
+
 
 /// No-op handler — used when an app doesn't supply a custom handler.
 /// Foreground messages are shown as local notifications automatically.

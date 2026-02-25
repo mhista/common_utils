@@ -1,14 +1,10 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'package:common_utils2/common_utils2.dart';
 import 'package:firebase_messaging/firebase_messaging.dart' as fm;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
-import 'managers/display_manager.dart';
-import 'managers/notification_token_manager.dart';
-import 'managers/topic_manager.dart';
-import 'notifications.dart';
 
 // ── Background FCM handler — MUST be top-level ───────────────────────────────
 @pragma('vm:entry-point')

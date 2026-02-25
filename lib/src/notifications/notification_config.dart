@@ -3,7 +3,8 @@
 // FILE: notification_config.dart
 // ─────────────────────────────────────────────────────────────────────────────
 
-import 'notifications.dart';
+import 'package:common_utils2/common_utils2.dart';
+
 
 /// Configuration object passed once at initialization.
 /// Create one per app — this is the primary customization surface.

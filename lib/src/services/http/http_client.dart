@@ -849,16 +849,33 @@ class HttpClient {
     }
   }
 
-  /// Extract error message from response
+ /// Extract error message from response.
+  ///
+  /// Handles both flat and validation-style error shapes:
+  ///
+  ///   Flat:       { "message": "Email already in use" }
+  ///   Validation: { "message": ["phone must be a string", "country is required"] }
+  ///   NestJS:     { "error": "Bad Request", "statusCode": 400, "message": [...] }
+  ///
+  /// For list payloads, messages are joined with " · " so the consuming app
+  /// receives a single readable string without needing to handle two shapes.
   String _extractErrorMessage(Response? response) {
     if (response?.data is Map) {
       final data = response!.data as Map<String, dynamic>;
-      // Try common error message fields
-      return data['message'] as String? ??
-          data['error'] as String? ??
-          data['detail'] as String? ??
-          data['msg'] as String? ??
-          'Server error occurred';
+
+      // Resolve message — may be String or List<dynamic>
+      final raw = data['message'] ?? data['error'] ?? data['detail'] ?? data['msg'];
+
+      if (raw is List) {
+        // Validation error list — e.g. ["phone must be a string", "name is required"]
+        final joined = raw
+            .map((e) => e.toString())
+            .where((s) => s.isNotEmpty)
+            .join(' · ');
+        return joined.isNotEmpty ? joined : 'Server error occurred';
+      }
+
+      if (raw is String && raw.isNotEmpty) return raw;
     }
     return response?.statusMessage ?? 'Server error occurred';
   }

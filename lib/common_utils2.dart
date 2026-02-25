@@ -47,7 +47,6 @@ export 'src/services/storage/hive_storage.dart';
 /// Alternative to Hive for lightweight storage needs
 export 'src/services/storage/shared_pref_storage.dart';
 
-
 /// Secured storage storage service for secured key-value persistence
 /// Alternative to Hive and sharedpreferences for secure storage needs
 export 'src/services/storage/secure_storage_service.dart';
@@ -219,6 +218,15 @@ export 'src/utils/maths_utils.dart';
 /// Centralized regex patterns for email, phone, URL, etc.
 /// Reusable patterns to ensure consistent validation across the app
 export 'src/utils/regex_patterns.dart';
+
+// NEW: Initializer (developers need this)
+export 'src/common_utils_initializer.dart';
+
+// NEW: Feature modules (developers can import specific modules)
+export 'src/medias/video/video.dart';
+export 'src/medias/downloads/downloads.dart';
+export 'src/medias/media/media.dart';
+export 'src/medias/image/image.dart';
 
 // ============================================================================
 // USAGE NOTES

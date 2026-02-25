@@ -3,9 +3,46 @@
 [![pub package](https://img.shields.io/pub/v/common_utils2.svg)](https://pub.dev/packages/common_utils2)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A comprehensive Flutter utilities package that provides essential tools for rapid app development. From string manipulation to network monitoring, currency conversion to bank validation - everything you need in one package.
+A comprehensive Flutter utilities package that provides essential tools for rapid app development. From string manipulation to video preloading, currency conversion to push notifications - everything you need in one package.
 
 ## ✨ Features
+
+### 🎥 Video & Media Management
+*New in v2.0.0*
+- **Video Preloading**: Smart video controller with configurable preload-ahead/behind
+- **Pagination Support**: Automatic content loading as users scroll
+- **Mixed Media Feeds**: Facebook-style feeds with videos, images, and documents
+- **Lazy Video Loading**: Viewport-aware video initialization for optimal memory
+- **State Preservation**: Like/unlike without reloading media
+- **Generic Design**: Works with any data type (Posts, Reels, Stories)
+
+### 📥 Download Manager
+- **Queue System**: Max 3 concurrent downloads with automatic queueing
+- **Pause/Resume**: Full control over download lifecycle
+- **Progress Tracking**: Real-time progress with speed and ETA
+- **Multi-Format**: Videos, images, documents, any file type
+- **Storage Management**: Organized by type (Videos/, Images/, Documents/)
+- **Batch Operations**: Pause all, resume all, cancel all
+
+### 🔔 Push Notifications
+- **FCM Integration**: Complete Firebase Cloud Messaging support
+- **Local Notifications**: Flutter local notifications with channels
+- **In-App Toasts**: Slide-down notification overlays
+- **Notification Centre**: Full history with read/unread tracking
+- **Badge Support**: Unread count badges for nav icons
+- **Deep Linking**: Automatic routing from notification taps
+- **Generic Handler**: Works with any app-specific routing logic
+
+### 🖼️ Image Preloading
+- **Smart Caching**: Two-layer caching (network + memory)
+- **Scroll-Ahead**: Preloads images in scroll direction
+- **CachedNetworkImage**: Optimized image display widgets
+- **Memory Efficient**: Only keeps visible + buffer
+
+### 📄 Document Previews
+- **PDF Thumbnails**: Generate first-page previews
+- **Multiple Formats**: PDF, DOCX, XLSX, PPTX support
+- **Generic Icons**: Fallback for unsupported formats
 
 ### 🔤 String & Text Utilities
 - **50+ String Extensions**: Validation, capitalization, masking, truncation
@@ -73,13 +110,31 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  common_utils2: ^1.0.1
+  common_utils2: ^2.0.0
+  
+  # Required for video features
+  video_player: ^2.8.2
+  chewie: ^1.7.5
+  
+  # Required for notifications
+  firebase_messaging: ^14.7.9
+  flutter_local_notifications: ^16.3.0
+  
+  # Required for downloads
+  dio: ^5.4.0
+  path_provider: ^2.1.1
+  permission_handler: ^11.2.0
+  
+  # Required for caching
+  cached_network_image: ^3.3.1
+  flutter_cache_manager: ^3.3.1
 ```
 
 Then run:
 
 ```bash
 flutter pub get
+flutter pub run build_runner build
 ```
 
 ## 🚀 Quick Start
@@ -91,6 +146,24 @@ import 'package:common_utils2/common_utils.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp();
+  
+  // Initialize notifications
+  await CommonNotificationService.instance.initialize(
+    NotificationConfig.withDefaults(
+      onTokenRefreshed: (token) => myApi.updateFcmToken(token),
+      onNotificationTap: (payload) async {
+        myRouter.push(payload.deepLink!);
+        return true;
+      },
+    ),
+  );
+  
+  // Initialize notification store (for in-app notifications)
+  final notificationCubit = NotificationCubit();
+  await notificationCubit.initialize();
   
   // Initialize core services
   await StorageService.init();
@@ -111,11 +184,226 @@ void main() async {
   BankUtils.init(paystackSecretKey: 'your_key');
   CountryUtils.init(cscApiKey: 'your_key');
   
-  runApp(MyApp());
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: notificationCubit),
+        BlocProvider(create: (_) => DownloadCubit()),
+      ],
+      child: MyApp(),
+    ),
+  );
 }
 ```
 
 ## 📚 Usage Examples
+
+### Video Preloading (TikTok/Reels Style)
+
+```dart
+// 1. Create your video item wrapper
+class PostVideoItem extends VideoItem<PostModel> {
+  PostVideoItem(PostModel post)
+      : super(
+          id: post.id,
+          videoUrl: post.content.first.url,
+          thumbnailUrl: post.thumbNail.isNotEmpty ? post.thumbNail.first : null,
+          data: post,
+        );
+
+  @override
+  PostVideoItem copyWithData(PostModel newData) => PostVideoItem(newData);
+}
+
+// 2. Create the cubit with pagination
+final videoItems = posts.map((p) => PostVideoItem(p)).toList();
+
+final videoCubit = VideoPaginationCubit<PostModel>(
+  initialItems: videoItems,
+  fetchPage: _fetchPage,  // Your API call
+  videoConfig: VideoPreloadConfig(
+    preloadAhead: 2,
+    keepBehind: 1,
+    maxConcurrentInits: 3,
+  ),
+  paginationConfig: PaginationConfig(
+    fetchThreshold: 3,  // Fetch when 3 items from end
+    pageSize: 10,
+  ),
+);
+
+// 3. Use in PageView
+PageView.builder(
+  onPageChanged: (index) {
+    videoCubit.onPageChanged(index);  // Handles everything
+  },
+  itemCount: state.items.length,
+  itemBuilder: (context, index) {
+    return VideoPlayerWidget(item: state.items[index]);
+  },
+)
+
+// 4. Handle likes without reloading video
+void _handleLike(PostModel post) {
+  // Update cache
+  cacheCubit.likePost(post.id, !post.liked);
+  
+  // Update video cubit (keeps controller alive)
+  final updatedPost = post.copyWith(liked: !post.liked);
+  videoCubit.updateItemData(post.id, updatedPost);
+  
+  // Fire API
+  bloc.add(LikePostEvent(id: post.id));
+}
+```
+
+### Download Manager
+
+```dart
+// Download a video
+final downloadId = await context.read<DownloadCubit>().addDownload(
+  url: 'https://example.com/video.mp4',
+  fileName: 'my_video.mp4',
+  type: DownloadType.video,
+);
+
+// Show downloads page
+Navigator.push(
+  context,
+  MaterialPageRoute(builder: (_) => const DownloadsListPage()),
+);
+
+// Listen to download completion
+BlocListener<DownloadCubit, DownloadState>(
+  listener: (context, state) {
+    if (state.completedDownloads.isNotEmpty) {
+      final latest = state.completedDownloads.last;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Downloaded: ${latest.fileName}')),
+      );
+    }
+  },
+)
+
+// Pause/Resume/Cancel
+context.read<DownloadCubit>().pauseDownload(downloadId);
+context.read<DownloadCubit>().resumeDownload(downloadId);
+context.read<DownloadCubit>().cancelDownload(downloadId);
+```
+
+### Push Notifications
+
+```dart
+// Initialize with config
+await CommonNotificationService.instance.initialize(
+  NotificationConfig.withDefaults(
+    androidIcon: '@drawable/ic_notification',
+    onTokenRefreshed: (token) => api.updateFcmToken(token),
+    onNotificationTap: (payload) async {
+      if (payload.deepLink != null) {
+        router.push(payload.deepLink!);
+        return true;
+      }
+      return false;
+    },
+    initialTopics: ['all_users'],
+  ),
+);
+
+// Subscribe to topics after login
+await CommonNotificationService.instance.subscribeMany([
+  'user_${userId}',
+  'vendors',
+]);
+
+// Show local notification
+await CommonNotificationService.instance.show(
+  title: 'New Message',
+  body: 'You have a new message from John',
+  channelId: 'messages',
+);
+
+// On logout
+await CommonNotificationService.instance.unsubscribeAll();
+await CommonNotificationService.instance.deleteToken();
+```
+
+### In-App Toast Notifications
+
+```dart
+// Wrap your MaterialApp
+MaterialApp.router(
+  builder: (context, child) => InAppNotificationOverlay(child: child!),
+  routerConfig: router,
+)
+
+// Show toast anywhere
+InAppNotificationController.instance.show(
+  title: 'New Follower',
+  body: '@john started following you',
+  type: 'new_follower',
+  onTap: () => router.push('/profile/john'),
+);
+
+// Add badge to nav icon
+NavigationDestination(
+  icon: NotificationBadge(
+    child: Icon(Icons.notifications_outlined),
+  ),
+  label: 'Notifications',
+)
+
+// Show notification centre
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => NotificationCentrePage(
+      onEntryTap: (entry) {
+        if (entry.deepLink != null) router.push(entry.deepLink!);
+      },
+    ),
+  ),
+);
+```
+
+### Image Preloading
+
+```dart
+// Preload images
+await ImagePreloadService().preloadRange(
+  imageUrls,
+  context,
+  bufferSize: 5,
+);
+
+// Use cached image widget
+CachedImageWidget(
+  imageUrl: 'https://example.com/image.jpg',
+  fit: BoxFit.cover,
+)
+```
+
+### Mixed Media Feeds (Facebook Style)
+
+```dart
+// For feeds with mixed images and videos
+final mediaItems = posts.map((p) => PostMediaItem(p)).toList();
+
+final mediaCubit = MixedMediaCubit<PostModel>(items: mediaItems);
+final videoCubit = LazyVideoCubit();
+
+MultiBlocProvider(
+  providers: [
+    BlocProvider.value(value: mediaCubit),
+    BlocProvider.value(value: videoCubit),
+  ],
+  child: MediaListView<PostModel>(
+    items: mediaItems,
+    overlayBuilder: (item) => _buildLikesCommentsUI(item),
+    onItemTap: (item) => _openPost(item),
+  ),
+)
+```
 
 ### String Extensions
 
@@ -276,246 +564,37 @@ if (NetworkConnectivity.isWifi) {
 }
 ```
 
-### Storage
+## 🔧 Configuration
 
-```dart
-final storage = StorageService.instance;
+### FCM Setup (Android)
 
-// Simple storage
-await storage.setString('username', 'John');
-final username = storage.getString('username');
-
-// JSON storage
-await storage.setJson('user', {'name': 'John', 'age': 30});
-final user = storage.getJson('user');
-
-// Batch operations
-await storage.setBatch({
-  'key1': 'value1',
-  'key2': 123,
-  'key3': true,
-});
+Add to `android/app/build.gradle`:
+```gradle
+apply plugin: 'com.google.gms.google-services'
 ```
 
-### HTTP Client
-
-```dart
-final client = HttpClient(baseUrl: 'https://api.example.com');
-
-// GET request
-final response = await client.get<Map<String, dynamic>>('/users');
-
-if (response.isSuccess) {
-  print(response.data);
+Add to `android/build.gradle`:
+```gradle
+dependencies {
+    classpath 'com.google.gms:google-services:4.4.0'
 }
-
-// POST with authentication
-client.setAuthToken(token);
-final result = await client.post<User>(
-  '/users',
-  data: {'name': 'John', 'email': 'john@example.com'},
-  parser: (data) => User.fromJson(data),
-);
-
-// File upload
-await client.uploadFile('/upload', imageFile);
 ```
 
-### Logger (Talker)
+Add `google-services.json` to `android/app/`
 
-```dart
-final logger = LoggerService.instance;
-
-// Basic logging
-logger.info('User logged in');
-logger.error('Failed to load data');
-logger.debug('API response received');
-
-// HTTP logging
-logger.logHttpRequest(
-  method: 'GET',
-  url: 'https://api.example.com/users',
-);
-
-// Performance logging
-final stopwatch = Stopwatch()..start();
-// ... perform operation
-stopwatch.stop();
-
-logger.logPerformance(
-  operation: 'Data Processing',
-  duration: stopwatch.elapsed,
-);
-
-// Navigation logging
-logger.logNavigation(from: '/home', to: '/profile');
+Add to `AndroidManifest.xml`:
+```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
 ```
 
-### Responsive Design
+### FCM Setup (iOS)
 
-```dart
-// Check device type
-if (ResponsiveHelper.isMobile(context)) {
-  // Mobile layout
-}
-
-// Responsive values
-final padding = ResponsiveHelper.responsivePadding(
-  context: context,
-  mobile: 16,
-  tablet: 24,
-  desktop: 32,
-);
-
-// Responsive widget
-ResponsiveBuilder(
-  builder: (context, screenType) {
-    switch (screenType) {
-      case ScreenType.mobile:
-        return MobileLayout();
-      case ScreenType.tablet:
-        return TabletLayout();
-      case ScreenType.desktop:
-        return DesktopLayout();
-    }
-  },
-)
-```
-
-### Image Utilities
-
-```dart
-// Pick image
-final image = await ImageUtils.pickFromGallery();
-
-// Compress image
-final compressed = await ImageUtils.compressImage(
-  imageFile,
-  quality: 85,
-);
-
-// Convert to base64
-final base64 = await ImageUtils.fileToBase64(imageFile);
-
-// Validate size
-final isValid = await ImageUtils.validateImageSize(
-  imageFile,
-  5.0, // Max 5MB
-);
-```
-
-### Encryption
-
-```dart
-// Hash password
-final hashed = EncryptionUtils.hashPassword('password123');
-final isValid = EncryptionUtils.verifyPassword('password123', hashed);
-
-// AES encryption
-final encrypted = EncryptionUtils.aesEncrypt('secret data', 'key');
-final decrypted = EncryptionUtils.aesDecrypt(encrypted, 'key');
-
-// Generate tokens
-final apiKey = EncryptionUtils.generateAPIKey();
-final otp = EncryptionUtils.generateOTP(6);
-
-// SHA-256 hash
-final hash = EncryptionUtils.sha256Hash('data');
-```
-
-### Format Utilities
-
-```dart
-// Phone numbers
-FormatUtils.formatNigerianPhone('08012345678');
-// Output: +234 801 234 5678
-
-// Dates
-FormatUtils.formatDate(DateTime.now()); // Jan 29, 2026
-FormatUtils.formatRelativeTime(yesterday); // 1 day ago
-
-// File sizes
-FormatUtils.formatFileSize(1048576); // 1.00 MB
-
-// Lists
-FormatUtils.formatList(['a', 'b', 'c']); // "a, b, and c"
-```
-
-## 🔧 API Keys Setup
-
-Some utilities require API keys (all have free tiers):
-
-### Paystack (Bank Utils)
-```dart
-BankUtils.init(
-  paystackSecretKey: 'sk_test_xxxxx', // Get from paystack.com
-);
-```
-
-### CountryStateCity (States/Cities)
-```dart
-CountryUtils.init(
-  cscApiKey: 'your_key', // Get from countrystatecity.in
-);
-```
-
-### Note on Currency Utils
-- **No API key required!** 
-- Uses free exchangerate-api.com and frankfurter.app
-- 1500+ requests per month on free tier
-
-## 📱 Form Field Widgets
-
-### Bank Account Form
-
-```dart
-DropdownButtonFormField<Bank>(
-  items: banks.map((bank) {
-    return DropdownMenuItem(
-      value: bank,
-      child: Text(bank.name),
-    );
-  }).toList(),
-  onChanged: (bank) => selectedBank = bank,
-)
-```
-
-### Country Selector
-
-```dart
-DropdownButtonFormField<Country>(
-  items: countries.map((country) {
-    return DropdownMenuItem(
-      value: country,
-      child: Text('${country.flag} ${country.name}'),
-    );
-  }).toList(),
-  onChanged: (country) => selectedCountry = country,
-)
-```
-
-### Phone Number with Dial Code
-
-```dart
-Row(
-  children: [
-    DropdownButton<DialCode>(
-      value: selectedDialCode,
-      items: dialCodes.map((dc) {
-        return DropdownMenuItem(
-          value: dc,
-          child: Text('${dc.flag} ${dc.dialCode}'),
-        );
-      }).toList(),
-    ),
-    Expanded(
-      child: TextFormField(
-        decoration: InputDecoration(labelText: 'Phone Number'),
-      ),
-    ),
-  ],
-)
-```
+1. Add `GoogleService-Info.plist` to `ios/Runner/`
+2. Enable Push Notifications capability in Xcode
+3. Enable Background Modes → Remote notifications
+4. Upload APNs certificate to Firebase Console
 
 ## 🎯 Nigerian-Specific Features
 
@@ -528,14 +607,13 @@ Row(
 - ✅ Naira (₦) currency formatting
 - ✅ Nigerian bank account format (10 digits)
 
-<!-- ## 📖 Documentation
+## 📖 Documentation
 
-Full documentation available at [your-docs-url.com](https://your-docs-url.com) -->
+Full documentation available at [your-docs-url.com](https://your-docs-url.com)
 
 ## 🤝 Contributing
 
-Contributions are welcome! 
-<!-- Please read our [contributing guidelines](CONTRIBUTING.md). -->
+Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md).
 
 ## 📄 License
 
@@ -553,7 +631,7 @@ If you find this package helpful, please give it a star on [GitHub](https://gith
 
 - **Author**: Diwe Innocent
 - **Email**: diweesomchi@gmail.com
-- **Website**: [https://innocentdiwe.qzz.io](https://.com)
+- **Website**: [https://innocentdiwe.qzz.io](https://innocentdiwe.qzz.io)
 
 ---
 
