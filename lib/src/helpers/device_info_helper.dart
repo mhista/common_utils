@@ -126,4 +126,6 @@ class DeviceInfoHelper {
       'buildMode': isReleaseMode ? 'release' : 'debug',
     };
   }
+
+  
 }

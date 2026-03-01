@@ -63,10 +63,12 @@ A comprehensive Flutter utilities package that provides essential tools for rapi
 - **Multi-Currency**: Convert between any currencies instantly
 
 ### 🌍 Location & Geography
-- **250+ Countries**: With flags, dial codes, currencies
-- **States & Cities**: Complete location data for forms
-- **Nigerian States**: Offline access, no API needed
-- **Geocoding**: GPS coordinates, distance calculations
+- **194 Countries**: Flags, dial codes, regions — complete offline dataset
+- **Three Data Sources**: Built-in static list, restcountries.com v3.1, countrystatecity.in
+- **States & Cities**: Complete location data for forms — offline lists for NG, US, GB, CA, AU, ZA, GH, KE
+- **Nigerian States**: All 36 states + FCT available offline, no API needed
+- **Lazy Loading**: Compile-time data materialised once on first access — O(1) lookups by code or dial code
+- **Source Switching**: Same API call whether you're using static data or a live API
 
 ### 📡 Network & Connectivity
 - **Network Monitoring**: Real-time connection status
@@ -182,7 +184,14 @@ void main() async {
   
   // Initialize API-based utilities (optional)
   BankUtils.init(paystackSecretKey: 'your_key');
-  CountryUtils.init(cscApiKey: 'your_key');
+
+  // Initialize country utilities (optional — only needed for live API sources)
+  // Skip entirely if you only need offline static data.
+  CountryService.init(
+    source: CountrySource.restCountriesApi,   // or .countryStateCityApi
+    httpClient: MyHttpClient(),               // your package:http or dio client
+    cscApiKey: 'your-key',                   // only for countryStateCityApi
+  );
   
   runApp(
     MultiBlocProvider(
@@ -517,20 +526,107 @@ final multi = await CurrencyUtils.convertToMultiple(
 ### Country & Location
 
 ```dart
-// Get all countries
-final countries = await CountryUtils.getAllCountries();
+// ── Offline static data — instant, no setup needed ──────────────────────────
 
-// Get Nigerian states (offline, no API needed)
-final states = CountryUtils.getNigerianStates();
+// Full country list (194 countries, lazy-loaded, sorted A→Z)
+final countries = CountryData.all;
 
-// Get cities
-final cities = await CountryUtils.getCities(
+// O(1) lookup by ISO code
+final nigeria = CountryData.byCode['NG'];
+
+// Lookup by dial code
+final plus234 = CountryData.byDialCode['+234']; // [Nigeria]
+final plus1    = CountryData.byDialCode['+1'];   // [United States, Canada]
+
+// Search across name, code, and dial code
+final hits = CountryData.search('ghana', limit: 5);
+
+// Popular countries first (great for pickers)
+final list = CountryData.withPopularFirst(CountryData.all);
+
+// Filter by region
+final africa = CountryData.byRegion('Africa');
+
+// Nigerian states — always offline, no API needed
+final states = await CountryService.instance.getStates('NG');
+if (states.success) {
+  for (final s in states.states) { print(s.name); }
+}
+
+// ── Live API — richer data, source-switchable ────────────────────────────────
+
+// Configure once in main() — restcountries.com (free, no key)
+CountryService.init(
+  source: CountrySource.restCountriesApi,
+  httpClient: MyHttpClient(), // your package:http or dio wrapper
+);
+
+// Or with CountryStateCity API (states + cities for any country)
+CountryService.init(
+  source: CountrySource.countryStateCityApi,
+  cscApiKey: 'your-free-key',
+  httpClient: MyHttpClient(),
+);
+
+// Use anywhere — same API regardless of source
+final result = await CountryService.instance.getAllCountries();
+if (result.success) {
+  for (final c in result.countries) {
+    print('${c.flag} ${c.name} (${c.dialCode})');
+  }
+}
+
+// Single country
+final ng = await CountryService.instance.getCountryByCode('NG');
+print('Capital: ${ng?.capital}'); // only populated from API sources
+
+// States — offline for NG, US, GB, CA, AU, ZA, GH, KE; live for everything else
+final states = await CountryService.instance.getStates('BR'); // live fetch
+
+// Cities — requires countryStateCityApi
+final cities = await CountryService.instance.getCities(
   countryCode: 'NG',
   stateCode: 'LA', // Lagos
 );
 
-// Get dial codes
-final dialCodes = await CountryUtils.getDialCodes();
+// Dial codes — always instant, from static data
+final dialCodes = CountryService.instance.getDialCodes();
+
+// Popular countries — always instant
+final popular = CountryService.instance.popularCountries;
+```
+
+#### Inject your HTTP client
+
+```dart
+// package:http
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class HttpClient implements CountryHttpClient {
+  @override
+  Future<dynamic> get(String url, {Map<String, String>? headers}) async {
+    final res = await http.get(Uri.parse(url), headers: headers);
+    if (res.statusCode != 200) {
+      throw CountryServiceException('HTTP ${res.statusCode}: $url');
+    }
+    return jsonDecode(res.body);
+  }
+}
+
+// package:dio
+class DioClient implements CountryHttpClient {
+  final _dio = Dio();
+
+  @override
+  Future<dynamic> get(String url, {Map<String, String>? headers}) async {
+    final res = await _dio.get<dynamic>(
+      url,
+      options: Options(headers: headers),
+    );
+    return res.data;
+  }
+}
 ```
 
 ### Network Connectivity
@@ -603,17 +699,18 @@ Add to `AndroidManifest.xml`:
 - ✅ NIN (National ID) validation
 - ✅ Nigerian banks list (Access, GTBank, Zenith, etc.)
 - ✅ Account number verification
-- ✅ Nigerian states (all 36 + FCT) - offline
+- ✅ Nigerian states (all 36 + FCT) — offline, no API needed
 - ✅ Naira (₦) currency formatting
 - ✅ Nigerian bank account format (10 digits)
-
+<!-- 
 ## 📖 Documentation
 
-Full documentation available at [your-docs-url.com](https://your-docs-url.com)
+Full documentation available at [your-docs-url.com](https://your-docs-url.com) -->
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md).
+Contributions are welcome! 
+<!-- Please read our [contributing guidelines](CONTRIBUTING.md). --> 
 
 ## 📄 License
 

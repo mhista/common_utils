@@ -188,7 +188,7 @@ export 'src/utils/color_utils.dart';
 
 /// Country-related utilities including country codes, flags, phone prefixes
 /// Comprehensive country data for internationalization
-export 'src/utils/country_utils.dart';
+export 'src/utils/countries/countries.dart';
 
 /// Currency utilities for formatting, conversion, and symbol handling
 /// Supports multiple currencies with proper formatting and symbols
