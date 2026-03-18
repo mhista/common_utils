@@ -1,10 +1,20 @@
 # Changelog
 
 
+## 2.0.2
+
+### 🌍Bug fix
+
+### 🌍 Color, File utilities (Major upgrade)
+
+The file and color utilities upgraded to be more extensive.
+
 ## 2.0.1
 
 ### 🌍Bug fix
 
+
+## 2.0.0
 
 ### 🌍 Country, State & City Utilities (complete rewrite)
 
