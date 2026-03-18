@@ -68,7 +68,7 @@ class MediaFeedItem<T> extends StatelessWidget {
       onVisibilityChanged: (info) {
         final cubit = context.read<LazyVideoCubit>();
         if (info.visibleFraction > 0.5) {
-          cubit.onVideoVisible(content.id, content.url);
+          cubit.onVideoVisibilityChanged(content.id, content.url, info.visibleFraction);
         } else {
           cubit.onVideoHidden(content.id);
         }

@@ -437,11 +437,11 @@ class CountryService {
         'See CountryHttpClient for implementation examples.',
       );
     }
-    return _httpClient!;
+    return _httpClient;
   }
 
   void _requireCSCKey() {
-    if (_cscApiKey == null || _cscApiKey!.isEmpty) {
+    if (_cscApiKey == null || _cscApiKey.isEmpty) {
       throw CountryServiceException(
         'No CountryStateCity API key provided.\n\n'
         'Pass cscApiKey when calling CountryService.init():\n\n'
