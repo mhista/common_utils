@@ -8,6 +8,8 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
+import '../../common_utils2.dart';
+
 // ─────────────────────────────────────────────────────────────────────
 // RESULT TYPES
 // ─────────────────────────────────────────────────────────────────────
@@ -21,11 +23,7 @@ class MediaFile {
   /// The thumbnail file is written to the app's temp directory.
   final File? thumbnail;
 
-  const MediaFile({
-    required this.file,
-    required this.type,
-    this.thumbnail,
-  });
+  const MediaFile({required this.file, required this.type, this.thumbnail});
 
   bool get isImage => type == MediaType.image;
   bool get isVideo => type == MediaType.video;
@@ -34,8 +32,6 @@ class MediaFile {
   String toString() =>
       'MediaFile(type: $type, path: ${file.path}, hasThumbnail: ${thumbnail != null})';
 }
-
-enum MediaType { image, video }
 
 /// Result wrapper — every public method returns this so callers
 /// never have to catch; they just check [isSuccess].
@@ -153,7 +149,8 @@ class MediaUtils {
         imageQuality: imageQuality,
         limit: limit,
       );
-      if (images.isEmpty) return const MediaResult.failure('No images selected');
+      if (images.isEmpty)
+        return const MediaResult.failure('No images selected');
       return MediaResult.success(images.map((x) => File(x.path)).toList());
     } catch (e) {
       debugPrint('[MediaUtils] pickMultipleImages: $e');
@@ -265,11 +262,13 @@ class MediaUtils {
           thumb = await _extractThumbnailFile(file, quality: thumbnailQuality);
         }
 
-        results.add(MediaFile(
-          file: file,
-          type: isVideo ? MediaType.video : MediaType.image,
-          thumbnail: thumb,
-        ));
+        results.add(
+          MediaFile(
+            file: file,
+            type: isVideo ? MediaType.video : MediaType.image,
+            thumbnail: thumb,
+          ),
+        );
       }
 
       return MediaResult.success(results);
@@ -480,8 +479,16 @@ class MediaUtils {
   /// Returns true if the file has an image extension.
   static bool isImageFile(File file) {
     final ext = p.extension(file.path).toLowerCase().replaceAll('.', '');
-    return {'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'heic', 'heif'}
-        .contains(ext);
+    return {
+      'jpg',
+      'jpeg',
+      'png',
+      'gif',
+      'bmp',
+      'webp',
+      'heic',
+      'heif',
+    }.contains(ext);
   }
 
   /// Returns true if the file has a video extension.
@@ -501,8 +508,7 @@ class MediaUtils {
     double? maxSizeMB,
   }) async {
     if (allowedTypes != null) {
-      final fileType =
-          isVideoFile(file) ? MediaType.video : MediaType.image;
+      final fileType = isVideoFile(file) ? MediaType.video : MediaType.image;
       if (!allowedTypes.contains(fileType)) {
         return MediaResult.failure(
           'File type not allowed. Expected: ${allowedTypes.map((t) => t.name).join(', ')}',
@@ -532,8 +538,7 @@ class MediaUtils {
       p.extension(file.path).toLowerCase().replaceAll('.', '');
 
   /// File name without extension.
-  static String getBasename(File file) =>
-      p.basenameWithoutExtension(file.path);
+  static String getBasename(File file) => p.basenameWithoutExtension(file.path);
 
   /// Generate a unique filename with a timestamp.
   ///
@@ -580,8 +585,17 @@ class MediaUtils {
   }
 
   static const _videoExtensions = {
-    'mp4', 'mov', 'avi', 'mkv', 'wmv', 'flv',
-    'm4v', 'webm', '3gp', 'ts', 'mts',
+    'mp4',
+    'mov',
+    'avi',
+    'mkv',
+    'wmv',
+    'flv',
+    'm4v',
+    'webm',
+    '3gp',
+    'ts',
+    'mts',
   };
 
   static bool _isVideoPath(String path) {
@@ -607,7 +621,9 @@ extension ImageSourceName on ImageSource {
 
 extension MediaTypeLabel on MediaType {
   String get label => switch (this) {
-        MediaType.image => 'Image',
-        MediaType.video => 'Video',
-      };
+    MediaType.image => 'Image',
+    MediaType.video => 'Video',
+    MediaType.document => 'Unknown',
+    MediaType.carousel => 'Unknown',
+  };
 }
