@@ -1,6 +1,10 @@
 # Changelog
 
 
+## 2.0.3
+
+### 🌍 Image utilities (Major upgrade)
+
 ## 2.0.2
 
 ### 🌍Bug fix
