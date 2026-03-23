@@ -4,7 +4,7 @@ import 'package:talker/talker.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 
 /// Singleton HTTP Client Service
-/// 
+///
 /// A comprehensive HTTP client built on Dio with:
 /// - Singleton pattern for shared instance across app
 /// - Dynamic interceptor management (add/remove after init)
@@ -73,9 +73,9 @@ class HttpClient {
   ErrorInterceptor? _errorInterceptor;
 
   /// Initialize singleton instance
-  /// 
+  ///
   /// Call this once in main.dart before using the client.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// HttpClient.init(
@@ -117,7 +117,7 @@ class HttpClient {
   }
 
   /// Get singleton instance
-  /// 
+  ///
   /// Throws exception if not initialized.
   static HttpClient get instance {
     if (_instance == null) {
@@ -181,10 +181,10 @@ class HttpClient {
   // ==================== Interceptor Management ====================
 
   /// Add a single interceptor
-  /// 
+  ///
   /// The interceptor will be added after logging and error interceptors
   /// but you can control the position with the [index] parameter.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// // Add auth interceptor after initialization
@@ -194,7 +194,7 @@ class HttpClient {
   ///     refreshToken: () async => await refresh(),
   ///   ),
   /// );
-  /// 
+  ///
   /// // Add at specific position (0 = first)
   /// HttpClient.instance.addInterceptor(
   ///   MyInterceptor(),
@@ -210,7 +210,7 @@ class HttpClient {
   }
 
   /// Add multiple interceptors at once
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// HttpClient.instance.addInterceptors([
@@ -224,14 +224,14 @@ class HttpClient {
   }
 
   /// Remove a specific interceptor
-  /// 
+  ///
   /// Returns true if the interceptor was found and removed.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final authInterceptor = AuthInterceptor(...);
   /// HttpClient.instance.addInterceptor(authInterceptor);
-  /// 
+  ///
   /// // Later, remove it
   /// HttpClient.instance.removeInterceptor(authInterceptor);
   /// ```
@@ -245,10 +245,10 @@ class HttpClient {
   }
 
   /// Remove interceptor by type
-  /// 
+  ///
   /// Removes the first interceptor matching the given type.
   /// Returns true if an interceptor was found and removed.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// // Remove any AuthInterceptor
@@ -264,9 +264,9 @@ class HttpClient {
   }
 
   /// Remove all interceptors of a specific type
-  /// 
+  ///
   /// Returns the number of interceptors removed.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final count = HttpClient.instance.removeAllInterceptorsByType<AuthInterceptor>();
@@ -285,9 +285,9 @@ class HttpClient {
   }
 
   /// Clear all custom interceptors
-  /// 
+  ///
   /// This removes all interceptors except the built-in logging and error interceptors.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// // Clear all custom interceptors
@@ -296,20 +296,20 @@ class HttpClient {
   void clearCustomInterceptors() {
     // Keep only logging and error interceptors
     _dio.interceptors.clear();
-    
+
     if (_loggingInterceptor != null) {
       _dio.interceptors.add(_loggingInterceptor!);
     }
-    
+
     if (_errorInterceptor != null) {
       _dio.interceptors.add(_errorInterceptor!);
     }
   }
 
   /// Clear ALL interceptors (including logging and error interceptors)
-  /// 
+  ///
   /// ⚠️ Use with caution - this removes even the built-in interceptors.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// HttpClient.instance.clearAllInterceptors();
@@ -321,14 +321,14 @@ class HttpClient {
   }
 
   /// Get list of all current interceptors
-  /// 
+  ///
   /// Returns an unmodifiable list of interceptors.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final interceptors = HttpClient.instance.getInterceptors();
   /// print('Active interceptors: ${interceptors.length}');
-  /// 
+  ///
   /// for (var interceptor in interceptors) {
   ///   print(interceptor.runtimeType);
   /// }
@@ -338,7 +338,7 @@ class HttpClient {
   }
 
   /// Check if a specific interceptor exists
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final authInterceptor = AuthInterceptor(...);
@@ -351,7 +351,7 @@ class HttpClient {
   }
 
   /// Check if an interceptor of a specific type exists
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// if (HttpClient.instance.hasInterceptorOfType<AuthInterceptor>()) {
@@ -363,18 +363,21 @@ class HttpClient {
   }
 
   /// Replace an interceptor
-  /// 
+  ///
   /// Replaces the old interceptor with a new one at the same position.
   /// Returns true if the old interceptor was found and replaced.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final oldAuth = AuthInterceptor(...);
   /// final newAuth = AuthInterceptor(...);
-  /// 
+  ///
   /// HttpClient.instance.replaceInterceptor(oldAuth, newAuth);
   /// ```
-  bool replaceInterceptor(Interceptor oldInterceptor, Interceptor newInterceptor) {
+  bool replaceInterceptor(
+    Interceptor oldInterceptor,
+    Interceptor newInterceptor,
+  ) {
     final index = _dio.interceptors.indexOf(oldInterceptor);
     if (index != -1) {
       _dio.interceptors[index] = newInterceptor;
@@ -384,16 +387,18 @@ class HttpClient {
   }
 
   /// Replace interceptor by type
-  /// 
+  ///
   /// Replaces the first interceptor of the specified type with a new one.
   /// Returns true if an interceptor was found and replaced.
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final newAuth = AuthInterceptor(...);
   /// HttpClient.instance.replaceInterceptorByType<AuthInterceptor>(newAuth);
   /// ```
-  bool replaceInterceptorByType<T extends Interceptor>(Interceptor newInterceptor) {
+  bool replaceInterceptorByType<T extends Interceptor>(
+    Interceptor newInterceptor,
+  ) {
     final index = _dio.interceptors.indexWhere((i) => i is T);
     if (index != -1) {
       _dio.interceptors[index] = newInterceptor;
@@ -405,20 +410,20 @@ class HttpClient {
   // ==================== GET Requests ====================
 
   /// Make a GET request
-  /// 
+  ///
   /// [path] - API endpoint path (e.g., '/users/1')
   /// [queryParameters] - URL query parameters
   /// [options] - Additional Dio options
   /// [cancelToken] - Token to cancel the request
   /// [parser] - Function to parse response data to type T
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final response = await client.get<User>(
   ///   '/users/1',
   ///   parser: (data) => User.fromJson(data),
   /// );
-  /// 
+  ///
   /// if (response.isSuccess) {
   ///   final user = response.data;
   ///   print(user.name);
@@ -454,14 +459,14 @@ class HttpClient {
   // ==================== POST Requests ====================
 
   /// Make a POST request
-  /// 
+  ///
   /// [path] - API endpoint path (e.g., '/auth/login')
   /// [data] - Request body (will be JSON encoded)
   /// [queryParameters] - URL query parameters
   /// [options] - Additional Dio options
   /// [cancelToken] - Token to cancel the request
   /// [parser] - Function to parse response data to type T
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final response = await client.post<LoginResponse>(
@@ -503,7 +508,7 @@ class HttpClient {
   // ==================== PUT Requests ====================
 
   /// Make a PUT request (full update)
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final response = await client.put<User>(
@@ -545,7 +550,7 @@ class HttpClient {
   // ==================== PATCH Requests ====================
 
   /// Make a PATCH request (partial update)
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final response = await client.patch<User>(
@@ -584,11 +589,11 @@ class HttpClient {
   // ==================== DELETE Requests ====================
 
   /// Make a DELETE request
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final response = await client.delete<void>('/users/1');
-  /// 
+  ///
   /// if (response.isSuccess) {
   ///   print('User deleted');
   /// }
@@ -623,13 +628,13 @@ class HttpClient {
   // ==================== File Upload ====================
 
   /// Upload a single file
-  /// 
+  ///
   /// [path] - API endpoint path
   /// [file] - File to upload
   /// [fileKey] - Form field name for the file (default: 'file')
   /// [data] - Additional form data
   /// [onSendProgress] - Callback for upload progress
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final file = File('/path/to/image.jpg');
@@ -654,12 +659,12 @@ class HttpClient {
     T Function(dynamic)? parser,
   }) async {
     try {
+      // ✅ ADD THIS
+      _dio.options.headers['Content-Type'] = 'multipart/form-data';
+
       final fileName = file.path.split('/').last;
       final formData = FormData.fromMap({
-        fileKey: await MultipartFile.fromFile(
-          file.path,
-          filename: fileName,
-        ),
+        fileKey: await MultipartFile.fromFile(file.path, filename: fileName),
         ...?data,
       });
 
@@ -677,18 +682,21 @@ class HttpClient {
       );
     } catch (e) {
       return _handleError<T>(e);
+    } finally {
+      // ✅ REMOVE AFTER UPLOAD
+      _dio.options.headers['Content-Type'] = 'application/json';
     }
   }
 
   /// Upload multiple files
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final files = [
   ///   File('/path/to/image1.jpg'),
   ///   File('/path/to/image2.jpg'),
   /// ];
-  /// 
+  ///
   /// final response = await client.uploadFiles<UploadResponse>(
   ///   '/upload/batch',
   ///   files,
@@ -706,6 +714,9 @@ class HttpClient {
     T Function(dynamic)? parser,
   }) async {
     try {
+      // ✅ ADD THIS
+      _dio.options.headers['Content-Type'] = 'multipart/form-data';
+
       final multipartFiles = <MultipartFile>[];
       for (final file in files) {
         final fileName = file.path.split('/').last;
@@ -714,10 +725,7 @@ class HttpClient {
         );
       }
 
-      final formData = FormData.fromMap({
-        fileKey: multipartFiles,
-        ...?data,
-      });
+      final formData = FormData.fromMap({fileKey: multipartFiles, ...?data});
 
       final response = await _dio.post(
         path,
@@ -733,17 +741,20 @@ class HttpClient {
       );
     } catch (e) {
       return _handleError<T>(e);
+    } finally {
+      // ✅ REMOVE AFTER UPLOAD
+      _dio.options.headers['Content-Type'] = 'application/json';
     }
   }
 
   // ==================== File Download ====================
 
   /// Download a file
-  /// 
+  ///
   /// [url] - File URL to download
   /// [savePath] - Local path where file will be saved
   /// [onReceiveProgress] - Callback for download progress
-  /// 
+  ///
   /// Example:
   /// ```dart
   /// final response = await client.downloadFile(
@@ -753,7 +764,7 @@ class HttpClient {
   ///     print('Progress: ${(received / total * 100).toStringAsFixed(0)}%');
   ///   },
   /// );
-  /// 
+  ///
   /// if (response.isSuccess) {
   ///   print('File saved to: ${response.data}');
   /// }
@@ -791,15 +802,10 @@ class HttpClient {
   /// Handle errors and convert to ApiResponse
   ApiResponse<T> _handleError<T>(dynamic error) {
     if (error is DioException) {
-      return ApiResponse.error(
-        error: _dioErrorToApiError(error),
-      );
+      return ApiResponse.error(error: _dioErrorToApiError(error));
     }
     return ApiResponse.error(
-      error: ApiError(
-        type: ApiErrorType.unknown,
-        message: error.toString(),
-      ),
+      error: ApiError(type: ApiErrorType.unknown, message: error.toString()),
     );
   }
 
@@ -849,7 +855,7 @@ class HttpClient {
     }
   }
 
- /// Extract error message from response.
+  /// Extract error message from response.
   ///
   /// Handles both flat and validation-style error shapes:
   ///
@@ -864,7 +870,8 @@ class HttpClient {
       final data = response!.data as Map<String, dynamic>;
 
       // Resolve message — may be String or List<dynamic>
-      final raw = data['message'] ?? data['error'] ?? data['detail'] ?? data['msg'];
+      final raw =
+          data['message'] ?? data['error'] ?? data['detail'] ?? data['msg'];
 
       if (raw is List) {
         // Validation error list — e.g. ["phone must be a string", "name is required"]
@@ -883,21 +890,21 @@ class HttpClient {
   // ==================== Utility Methods ====================
 
   /// Update base URL
-  /// 
+  ///
   /// Useful for switching between environments.
   void updateBaseUrl(String newBaseUrl) {
     _dio.options.baseUrl = newBaseUrl;
   }
 
   /// Update headers
-  /// 
+  ///
   /// Add or update default headers for all requests.
   void updateHeaders(Map<String, String> newHeaders) {
     _dio.options.headers.addAll(newHeaders);
   }
 
   /// Set authentication token
-  /// 
+  ///
   /// Adds Bearer token to all requests.
   void setAuthToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
@@ -930,7 +937,7 @@ class HttpClient {
 // ==================== Interceptors ====================
 
 /// Error Interceptor with Retry Logic
-/// 
+///
 /// Automatically retries failed requests with exponential backoff.
 /// Retries on: timeout, connection errors, 5xx server errors.
 class ErrorInterceptor extends Interceptor {
@@ -984,9 +991,9 @@ class ErrorInterceptor extends Interceptor {
 }
 
 /// Auth Interceptor
-/// 
+///
 /// Handles token injection and automatic token refresh on 401 errors.
-/// 
+///
 /// Usage:
 /// ```dart
 /// AuthInterceptor(
@@ -1002,10 +1009,7 @@ class AuthInterceptor extends Interceptor {
   final String Function() getToken;
   final Future<String> Function()? refreshToken;
 
-  AuthInterceptor({
-    required this.getToken,
-    this.refreshToken,
-  });
+  AuthInterceptor({required this.getToken, this.refreshToken});
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
@@ -1045,7 +1049,7 @@ class AuthInterceptor extends Interceptor {
 // ==================== API Response Models ====================
 
 /// API Response wrapper
-/// 
+///
 /// Wraps all API responses for type-safe handling.
 class ApiResponse<T> {
   final T? data;
@@ -1077,9 +1081,7 @@ class ApiResponse<T> {
   }
 
   /// Create error response
-  factory ApiResponse.error({
-    required ApiError error,
-  }) {
+  factory ApiResponse.error({required ApiError error}) {
     return ApiResponse._(
       error: error,
       statusCode: error.statusCode,
