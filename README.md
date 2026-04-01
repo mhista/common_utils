@@ -3,733 +3,245 @@
 [![pub package](https://img.shields.io/pub/v/common_utils2.svg)](https://pub.dev/packages/common_utils2)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A comprehensive Flutter utilities package that provides essential tools for rapid app development. From string manipulation to video preloading, currency conversion to push notifications - everything you need in one package.
+A comprehensive, production-ready Flutter utilities package designed to accelerate development by providing a vast collection of essential tools, services, and widgets. From advanced media management and push notifications to robust storage solutions and internationalization—`common_utils2` covers it all.
 
-## ✨ Features
+---
 
-### 🎥 Video & Media Management
-*New in v2.0.0*
-- **Video Preloading**: Smart video controller with configurable preload-ahead/behind
-- **Pagination Support**: Automatic content loading as users scroll
-- **Mixed Media Feeds**: Facebook-style feeds with videos, images, and documents
-- **Lazy Video Loading**: Viewport-aware video initialization for optimal memory
-- **State Preservation**: Like/unlike without reloading media
-- **Generic Design**: Works with any data type (Posts, Reels, Stories)
+## ✨ Features at a Glance
 
-### 📥 Download Manager
-- **Queue System**: Max 3 concurrent downloads with automatic queueing
-- **Pause/Resume**: Full control over download lifecycle
-- **Progress Tracking**: Real-time progress with speed and ETA
-- **Multi-Format**: Videos, images, documents, any file type
-- **Storage Management**: Organized by type (Videos/, Images/, Documents/)
-- **Batch Operations**: Pause all, resume all, cancel all
+### 🎥 Advanced Media & Video
+- **Video Preloading**: Smart viewport-aware preloading (ahead/behind) for TikTok-style feeds.
+- **Lazy Loading**: Automatic initialization/disposal of video controllers to optimize memory.
+- **Mixed Media**: Seamlessly handle feeds containing images, videos, and documents.
+- **Image Preloading**: Efficient pre-caching of network images for smooth scrolling.
+- **Pagination**: Built-in Cubit-based pagination for endless scrolling content.
 
-### 🔔 Push Notifications
-- **FCM Integration**: Complete Firebase Cloud Messaging support
-- **Local Notifications**: Flutter local notifications with channels
-- **In-App Toasts**: Slide-down notification overlays
-- **Notification Centre**: Full history with read/unread tracking
-- **Badge Support**: Unread count badges for nav icons
-- **Deep Linking**: Automatic routing from notification taps
-- **Generic Handler**: Works with any app-specific routing logic
+### 🔔 Complete Notification System
+- **FCM & Local**: Unified API for Firebase Cloud Messaging and local notifications.
+- **In-App Overlays**: Elegant slide-down notification toasts that work over any screen.
+- **Notification Centre**: Persistent history tracking with read/unread states.
+- **Topic Management**: Simplified subscription/unsubscription logic.
 
-### 🖼️ Image Preloading
-- **Smart Caching**: Two-layer caching (network + memory)
-- **Scroll-Ahead**: Preloads images in scroll direction
-- **CachedNetworkImage**: Optimized image display widgets
-- **Memory Efficient**: Only keeps visible + buffer
+### 📥 Robust Download Manager
+- **Concurrent Downloads**: Intelligent queue system with configurable concurrency.
+- **Lifecycle Control**: Pause, resume, cancel, and retry downloads.
+- **Progress Tracking**: Real-time progress updates, speed, and ETA calculation.
 
-### 📄 Document Previews
-- **PDF Thumbnails**: Generate first-page previews
-- **Multiple Formats**: PDF, DOCX, XLSX, PPTX support
-- **Generic Icons**: Fallback for unsupported formats
+### 💾 Multi-Engine Storage
+- **Hive Storage**: High-performance, user-isolated persistent storage.
+- **Secure Storage**: AES-256 encrypted storage for tokens and sensitive credentials.
+- **Shared Preferences**: Lightweight key-value persistence for simple settings.
 
-### 🔤 String & Text Utilities
-- **50+ String Extensions**: Validation, capitalization, masking, truncation
-- **Validators**: Email, phone, passwords, Nigerian-specific (BVN, NIN)
-- **Regex Patterns**: 50+ predefined patterns for common use cases
-- **Format Utilities**: Phone numbers, credit cards, dates, file sizes
+### 🌐 Network & Location
+- **Connectivity Monitoring**: Real-time internet status, connection type (WiFi, Mobile), and quality estimation (Ping/Latency).
+- **Location Services**: High-level API for GPS coordinates, distance calculations, geocoding (Address ↔ Coordinates), and geofencing.
+- **HTTP Client**: Dio-based client with built-in interceptors for automatic token management and error handling.
 
-### 🔢 Number & Math
-- **Number Extensions**: Currency formatting, percentages, compact notation
-- **Math Utilities**: Statistics, financial calculations, random generation
-- **Currency Converter**: Real-time exchange rates for 150+ currencies
-- **Nigerian Naira Support**: Built-in ₦ formatting
+### 🛠️ Core Utilities & Performance
+- **Debouncer & Throttler**: Multiple variants (Basic, Typed, Async) and `RateLimiter` for performance optimization.
+- **Encryption**: AES, RSA, SHA-256, MD5, and secure password hashing.
+- **Maths & Color**: Advanced mathematical operations and color manipulation (Hex, brightness, contrast).
+- **Result Type**: Functional error handling for cleaner, type-safe code.
 
-### 🏦 Banking & Finance
-- **Bank List**: Fetch banks for Nigeria, Ghana, South Africa, Kenya
-- **Account Validation**: Real-time account verification via Paystack
-- **Currency Conversion**: Live exchange rates with no API key required
-- **Multi-Currency**: Convert between any currencies instantly
+### 📱 Responsive & Device Utils
+- **Breakpoint System**: Mobile, Tablet, Desktop, and Ultrawide layout helpers.
+- **Responsive Values**: Fluid UI scaling with `valueWhen`, `responsiveValue`, and `fontSize`.
+- **System Controls**: Easy control over status bar, orientation, and device information.
 
-### 🌍 Location & Geography
-- **194 Countries**: Flags, dial codes, regions — complete offline dataset
-- **Three Data Sources**: Built-in static list, restcountries.com v3.1, countrystatecity.in
-- **States & Cities**: Complete location data for forms — offline lists for NG, US, GB, CA, AU, ZA, GH, KE
-- **Nigerian States**: All 36 states + FCT available offline, no API needed
-- **Lazy Loading**: Compile-time data materialised once on first access — O(1) lookups by code or dial code
-- **Source Switching**: Same API call whether you're using static data or a live API
+### 🇳🇬 Nigerian & International Features
+- **Banking**: NUBAN validation, bank discovery for Nigeria, Ghana, SA, and Kenya.
+- **Internationalization**: 194+ countries data, state/city support (offline & live API).
+- **Validators**: Robust form validation including Nigerian-specific (BVN, NIN, Phone).
 
-### 📡 Network & Connectivity
-- **Network Monitoring**: Real-time connection status
-- **Connection Quality**: Measure latency and speed
-- **Ping Test**: Check host connectivity
-- **Auto-Retry**: Wait for connection with timeout
-
-### 🎨 UI & Design
-- **Responsive Helpers**: Breakpoints, adaptive layouts
-- **Color Utilities**: Generate palettes, calculate contrast
-- **Device Info**: Platform detection, screen sizes
-- **Image Utils**: Compression, picking, base64 encoding
-
-### 🔐 Security & Storage
-- **Encryption**: AES, hashing (MD5, SHA-256), password hashing
-- **Secure Storage**: Type-safe SharedPreferences wrapper
-- **Data Masking**: Hide sensitive information
-- **Token Generation**: API keys, OTP, UUID
-
-### 📝 Logging & Debugging
-- **Talker Integration**: Beautiful console logs
-- **HTTP Logging**: Track all API requests/responses
-- **Performance Monitoring**: Log operation durations
-- **Custom Log Types**: Navigation, user actions, errors
-
-### 🗂️ Collections & Data
-- **List Extensions**: 40+ operations (groupBy, chunk, distinct)
-- **Map Extensions**: Safe access, filtering, deep merge
-- **Result Type**: Type-safe error handling
-- **Async State**: Loading, success, error states
-
-### 📁 File & Media
-- **File Utilities**: Read, write, copy, move operations
-- **Image Tools**: Pick, compress, validate
-- **Path Helpers**: Cross-platform path management
-- **Cleanup**: Auto-delete old files
+---
 
 ## 📦 Installation
 
-Add to your `pubspec.yaml`:
+Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
   common_utils2: ^2.0.0
-  
-  # Required for video features
-  video_player: ^2.8.2
-  chewie: ^1.7.5
-  
-  # Required for notifications
-  firebase_messaging: ^14.7.9
-  flutter_local_notifications: ^16.3.0
-  
-  # Required for downloads
-  dio: ^5.4.0
-  path_provider: ^2.1.1
-  permission_handler: ^11.2.0
-  
-  # Required for caching
-  cached_network_image: ^3.3.1
-  flutter_cache_manager: ^3.3.1
 ```
 
-Then run:
+---
 
-```bash
-flutter pub get
-flutter pub run build_runner build
-```
+## 🚀 Quick Start: Initialization
 
-## 🚀 Quick Start
-
-### Initialize in your app
+The easiest way to set up the package is using the `CommonUtilsInitializer`.
 
 ```dart
-import 'package:common_utils2/common_utils.dart';
+import 'package:common_utils2/common_utils2.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  // 1. Initialize Core Services (Optional but recommended)
+  await HiveStorageService.init();
+  await SecureStorageService.init();
+  await LoggerService.init(enabled: true, logLevel: LoggerLevel.debug);
   
-  // Initialize notifications
-  await CommonNotificationService.instance.initialize(
-    NotificationConfig.withDefaults(
-      onTokenRefreshed: (token) => myApi.updateFcmToken(token),
-      onNotificationTap: (payload) async {
-        myRouter.push(payload.deepLink!);
-        return true;
-      },
+  // 2. Initialize Common Utils Features
+  final initializer = await CommonUtilsInitializer.initialize(
+    notificationConfig: NotificationConfig.withDefaults(
+      onNotificationTap: (payload) => print('Tapped: ${payload.title}'),
     ),
+    enableDownloads: true,
+    enableNotifications: true,
   );
-  
-  // Initialize notification store (for in-app notifications)
-  final notificationCubit = NotificationCubit();
-  await notificationCubit.initialize();
-  
-  // Initialize core services
-  await StorageService.init();
-  await DeviceInfoHelper.init();
-  await LoggerService.init(
-    logLevel: LoggerLevel.debug,
-    enabled: true,
-  );
-  
-  // Initialize network monitoring
-  await NetworkConnectivity.init(
-    onConnectivityChanged: (status) {
-      print('Connection: ${status.connectionType.name}');
-    },
-  );
-  
-  // Initialize API-based utilities (optional)
-  BankUtils.init(paystackSecretKey: 'your_key');
 
-  // Initialize country utilities (optional — only needed for live API sources)
-  // Skip entirely if you only need offline static data.
-  CountryService.init(
-    source: CountrySource.restCountriesApi,   // or .countryStateCityApi
-    httpClient: MyHttpClient(),               // your package:http or dio client
-    cscApiKey: 'your-key',                   // only for countryStateCityApi
-  );
-  
   runApp(
     MultiBlocProvider(
-      providers: [
-        BlocProvider.value(value: notificationCubit),
-        BlocProvider(create: (_) => DownloadCubit()),
-      ],
-      child: MyApp(),
+      providers: initializer.providers, 
+      child: const MyApp(),
     ),
   );
 }
 ```
-
-## 📚 Usage Examples
-
-### Video Preloading (TikTok/Reels Style)
-
-```dart
-// 1. Create your video item wrapper
-class PostVideoItem extends VideoItem<PostModel> {
-  PostVideoItem(PostModel post)
-      : super(
-          id: post.id,
-          videoUrl: post.content.first.url,
-          thumbnailUrl: post.thumbNail.isNotEmpty ? post.thumbNail.first : null,
-          data: post,
-        );
-
-  @override
-  PostVideoItem copyWithData(PostModel newData) => PostVideoItem(newData);
-}
-
-// 2. Create the cubit with pagination
-final videoItems = posts.map((p) => PostVideoItem(p)).toList();
-
-final videoCubit = VideoPaginationCubit<PostModel>(
-  initialItems: videoItems,
-  fetchPage: _fetchPage,  // Your API call
-  videoConfig: VideoPreloadConfig(
-    preloadAhead: 2,
-    keepBehind: 1,
-    maxConcurrentInits: 3,
-  ),
-  paginationConfig: PaginationConfig(
-    fetchThreshold: 3,  // Fetch when 3 items from end
-    pageSize: 10,
-  ),
-);
-
-// 3. Use in PageView
-PageView.builder(
-  onPageChanged: (index) {
-    videoCubit.onPageChanged(index);  // Handles everything
-  },
-  itemCount: state.items.length,
-  itemBuilder: (context, index) {
-    return VideoPlayerWidget(item: state.items[index]);
-  },
-)
-
-// 4. Handle likes without reloading video
-void _handleLike(PostModel post) {
-  // Update cache
-  cacheCubit.likePost(post.id, !post.liked);
-  
-  // Update video cubit (keeps controller alive)
-  final updatedPost = post.copyWith(liked: !post.liked);
-  videoCubit.updateItemData(post.id, updatedPost);
-  
-  // Fire API
-  bloc.add(LikePostEvent(id: post.id));
-}
-```
-
-### Download Manager
-
-```dart
-// Download a video
-final downloadId = await context.read<DownloadCubit>().addDownload(
-  url: 'https://example.com/video.mp4',
-  fileName: 'my_video.mp4',
-  type: DownloadType.video,
-);
-
-// Show downloads page
-Navigator.push(
-  context,
-  MaterialPageRoute(builder: (_) => const DownloadsListPage()),
-);
-
-// Listen to download completion
-BlocListener<DownloadCubit, DownloadState>(
-  listener: (context, state) {
-    if (state.completedDownloads.isNotEmpty) {
-      final latest = state.completedDownloads.last;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Downloaded: ${latest.fileName}')),
-      );
-    }
-  },
-)
-
-// Pause/Resume/Cancel
-context.read<DownloadCubit>().pauseDownload(downloadId);
-context.read<DownloadCubit>().resumeDownload(downloadId);
-context.read<DownloadCubit>().cancelDownload(downloadId);
-```
-
-### Push Notifications
-
-```dart
-// Initialize with config
-await CommonNotificationService.instance.initialize(
-  NotificationConfig.withDefaults(
-    androidIcon: '@drawable/ic_notification',
-    onTokenRefreshed: (token) => api.updateFcmToken(token),
-    onNotificationTap: (payload) async {
-      if (payload.deepLink != null) {
-        router.push(payload.deepLink!);
-        return true;
-      }
-      return false;
-    },
-    initialTopics: ['all_users'],
-  ),
-);
-
-// Subscribe to topics after login
-await CommonNotificationService.instance.subscribeMany([
-  'user_${userId}',
-  'vendors',
-]);
-
-// Show local notification
-await CommonNotificationService.instance.show(
-  title: 'New Message',
-  body: 'You have a new message from John',
-  channelId: 'messages',
-);
-
-// On logout
-await CommonNotificationService.instance.unsubscribeAll();
-await CommonNotificationService.instance.deleteToken();
-```
-
-### In-App Toast Notifications
-
-```dart
-// Wrap your MaterialApp
-MaterialApp.router(
-  builder: (context, child) => InAppNotificationOverlay(child: child!),
-  routerConfig: router,
-)
-
-// Show toast anywhere
-InAppNotificationController.instance.show(
-  title: 'New Follower',
-  body: '@john started following you',
-  type: 'new_follower',
-  onTap: () => router.push('/profile/john'),
-);
-
-// Add badge to nav icon
-NavigationDestination(
-  icon: NotificationBadge(
-    child: Icon(Icons.notifications_outlined),
-  ),
-  label: 'Notifications',
-)
-
-// Show notification centre
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => NotificationCentrePage(
-      onEntryTap: (entry) {
-        if (entry.deepLink != null) router.push(entry.deepLink!);
-      },
-    ),
-  ),
-);
-```
-
-### Image Preloading
-
-```dart
-// Preload images
-await ImagePreloadService().preloadRange(
-  imageUrls,
-  context,
-  bufferSize: 5,
-);
-
-// Use cached image widget
-CachedImageWidget(
-  imageUrl: 'https://example.com/image.jpg',
-  fit: BoxFit.cover,
-)
-```
-
-### Mixed Media Feeds (Facebook Style)
-
-```dart
-// For feeds with mixed images and videos
-final mediaItems = posts.map((p) => PostMediaItem(p)).toList();
-
-final mediaCubit = MixedMediaCubit<PostModel>(items: mediaItems);
-final videoCubit = LazyVideoCubit();
-
-MultiBlocProvider(
-  providers: [
-    BlocProvider.value(value: mediaCubit),
-    BlocProvider.value(value: videoCubit),
-  ],
-  child: MediaListView<PostModel>(
-    items: mediaItems,
-    overlayBuilder: (item) => _buildLikesCommentsUI(item),
-    onItemTap: (item) => _openPost(item),
-  ),
-)
-```
-
-### String Extensions
-
-```dart
-// Validation
-'test@example.com'.isValidEmail; // true
-'+2348012345678'.isValidNigerianPhone; // true
-'1234567890123456'.isValidCreditCard; // true
-
-// Capitalization
-'hello world'.toTitleCase; // "Hello World"
-'some_variable'.toCamelCase; // "someVariable"
-
-// Masking
-'john@example.com'.maskEmail; // "j***@example.com"
-'+2348012345678'.maskPhone; // "******5678"
-
-// Truncation
-'Very long text here'.truncate(10); // "Very long..."
-```
-
-### Validators
-
-```dart
-// In TextFormField
-TextFormField(
-  validator: Validators.emailValidator,
-)
-
-// Combine validators
-TextFormField(
-  validator: Validators.combine([
-    Validators.required,
-    (value) => Validators.minLengthValidator(value, 8),
-    Validators.strongPasswordValidator,
-  ]),
-)
-
-// Nigerian-specific
-TextFormField(
-  validator: Validators.bvnValidator, // 11-digit BVN
-)
-```
-
-### Number Formatting
-
-```dart
-// Currency
-1500000.toCurrency(); // "₦1,500,000.00"
-1234567.toCompactString(); // "1.2M"
-
-// Percentages
-0.75.toPercentage(); // "75%"
-
-// File sizes
-1048576.toBytesString(); // "1.00 MB"
-
-// Calculations
-100.percentOf(20); // 20.0
-100.addPercentage(10); // 110.0
-```
-
-### Bank Utilities
-
-```dart
-// Get banks list
-final banks = await BankUtils.getNigerianBanks();
-
-// Validate account
-final validation = await BankUtils.validateAccount(
-  accountNumber: '0123456789',
-  bankCode: '058', // GTBank
-);
-
-if (validation.isValid) {
-  print('Account Name: ${validation.accountName}');
-}
-
-// Search banks
-final results = await BankUtils.searchBanks(
-  query: 'Access',
-  country: 'nigeria',
-);
-```
-
-### Currency Conversion
-
-```dart
-// Convert currency
-final conversion = await CurrencyUtils.convert(
-  amount: 100,
-  fromCurrency: 'USD',
-  toCurrency: 'NGN',
-);
-
-print(conversion.formattedConversion);
-// Output: $100.00 = ₦76,500.00
-
-// Get exchange rates
-final rates = await CurrencyUtils.getExchangeRates(baseCurrency: 'USD');
-print('1 USD = ${rates.getRate('NGN')} NGN');
-
-// Convert to multiple currencies
-final multi = await CurrencyUtils.convertToMultiple(
-  amount: 100,
-  fromCurrency: 'USD',
-  toCurrencies: ['NGN', 'GHS', 'EUR', 'GBP'],
-);
-```
-
-### Country & Location
-
-```dart
-// ── Offline static data — instant, no setup needed ──────────────────────────
-
-// Full country list (194 countries, lazy-loaded, sorted A→Z)
-final countries = CountryData.all;
-
-// O(1) lookup by ISO code
-final nigeria = CountryData.byCode['NG'];
-
-// Lookup by dial code
-final plus234 = CountryData.byDialCode['+234']; // [Nigeria]
-final plus1    = CountryData.byDialCode['+1'];   // [United States, Canada]
-
-// Search across name, code, and dial code
-final hits = CountryData.search('ghana', limit: 5);
-
-// Popular countries first (great for pickers)
-final list = CountryData.withPopularFirst(CountryData.all);
-
-// Filter by region
-final africa = CountryData.byRegion('Africa');
-
-// Nigerian states — always offline, no API needed
-final states = await CountryService.instance.getStates('NG');
-if (states.success) {
-  for (final s in states.states) { print(s.name); }
-}
-
-// ── Live API — richer data, source-switchable ────────────────────────────────
-
-// Configure once in main() — restcountries.com (free, no key)
-CountryService.init(
-  source: CountrySource.restCountriesApi,
-  httpClient: MyHttpClient(), // your package:http or dio wrapper
-);
-
-// Or with CountryStateCity API (states + cities for any country)
-CountryService.init(
-  source: CountrySource.countryStateCityApi,
-  cscApiKey: 'your-free-key',
-  httpClient: MyHttpClient(),
-);
-
-// Use anywhere — same API regardless of source
-final result = await CountryService.instance.getAllCountries();
-if (result.success) {
-  for (final c in result.countries) {
-    print('${c.flag} ${c.name} (${c.dialCode})');
-  }
-}
-
-// Single country
-final ng = await CountryService.instance.getCountryByCode('NG');
-print('Capital: ${ng?.capital}'); // only populated from API sources
-
-// States — offline for NG, US, GB, CA, AU, ZA, GH, KE; live for everything else
-final states = await CountryService.instance.getStates('BR'); // live fetch
-
-// Cities — requires countryStateCityApi
-final cities = await CountryService.instance.getCities(
-  countryCode: 'NG',
-  stateCode: 'LA', // Lagos
-);
-
-// Dial codes — always instant, from static data
-final dialCodes = CountryService.instance.getDialCodes();
-
-// Popular countries — always instant
-final popular = CountryService.instance.popularCountries;
-```
-
-#### Inject your HTTP client
-
-```dart
-// package:http
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-
-class HttpClient implements CountryHttpClient {
-  @override
-  Future<dynamic> get(String url, {Map<String, String>? headers}) async {
-    final res = await http.get(Uri.parse(url), headers: headers);
-    if (res.statusCode != 200) {
-      throw CountryServiceException('HTTP ${res.statusCode}: $url');
-    }
-    return jsonDecode(res.body);
-  }
-}
-
-// package:dio
-class DioClient implements CountryHttpClient {
-  final _dio = Dio();
-
-  @override
-  Future<dynamic> get(String url, {Map<String, String>? headers}) async {
-    final res = await _dio.get<dynamic>(
-      url,
-      options: Options(headers: headers),
-    );
-    return res.data;
-  }
-}
-```
-
-### Network Connectivity
-
-```dart
-// Check connection status
-final status = await NetworkConnectivity.checkConnectivity();
-print('Connected: ${status.isConnected}');
-print('Type: ${status.connectionType.name}');
-
-// Listen to changes
-NetworkConnectivity.onConnectivityChanged.listen((status) {
-  if (status.isConnected) {
-    print('✓ Back online!');
-  } else {
-    print('✗ Connection lost');
-  }
-});
-
-// Check connection quality
-final quality = await NetworkConnectivity.getConnectionQuality();
-print('Quality: ${quality.icon} ${quality.name}');
-
-// Ping test
-final ping = await NetworkConnectivity.ping(host: 'google.com');
-print('Latency: ${ping.latencyMs}ms');
-
-// Quick checks
-if (NetworkConnectivity.isWifi) {
-  print('Connected via WiFi');
-}
-```
-
-## 🔧 Configuration
-
-### FCM Setup (Android)
-
-Add to `android/app/build.gradle`:
-```gradle
-apply plugin: 'com.google.gms.google-services'
-```
-
-Add to `android/build.gradle`:
-```gradle
-dependencies {
-    classpath 'com.google.gms:google-services:4.4.0'
-}
-```
-
-Add `google-services.json` to `android/app/`
-
-Add to `AndroidManifest.xml`:
-```xml
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-```
-
-### FCM Setup (iOS)
-
-1. Add `GoogleService-Info.plist` to `ios/Runner/`
-2. Enable Push Notifications capability in Xcode
-3. Enable Background Modes → Remote notifications
-4. Upload APNs certificate to Firebase Console
-
-## 🎯 Nigerian-Specific Features
-
-- ✅ Nigerian phone number validation
-- ✅ BVN (Bank Verification Number) validation
-- ✅ NIN (National ID) validation
-- ✅ Nigerian banks list (Access, GTBank, Zenith, etc.)
-- ✅ Account number verification
-- ✅ Nigerian states (all 36 + FCT) — offline, no API needed
-- ✅ Naira (₦) currency formatting
-- ✅ Nigerian bank account format (10 digits)
-<!-- 
-## 📖 Documentation
-
-Full documentation available at [your-docs-url.com](https://your-docs-url.com) -->
-
-## 🤝 Contributing
-
-Contributions are welcome! 
-<!-- Please read our [contributing guidelines](CONTRIBUTING.md). --> 
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🐛 Issues
-
-Found a bug? Please [open an issue](https://github.com/mhista/common_utils/issues).
-
-## ⭐ Support
-
-If you find this package helpful, please give it a star on [GitHub](https://github.com/mhista/common_utils)!
-
-## 📮 Contact
-
-- **Author**: Diwe Innocent
-- **Email**: diweesomchi@gmail.com
-- **Website**: [https://innocentdiwe.qzz.io](https://innocentdiwe.qzz.io)
 
 ---
 
-Made with ❤️ in Nigeria 🇳🇬
+## 📚 Detailed Usage
+
+### 1. Responsive UI with `ResponsiveHelper`
+
+Build fluid layouts that work perfectly on any screen size.
+
+```dart
+// Get values based on screen type
+double padding = ResponsiveHelper.valueWhen(
+  context: context,
+  mobile: 16.0,
+  tablet: 24.0,
+  desktop: 32.0,
+);
+
+// Responsive Font Size (automatically scales)
+double titleSize = ResponsiveHelper.fontSize(
+  context: context,
+  mobile: 18.0,
+  tablet: 22.0,
+);
+```
+
+### 2. Network Connectivity & Monitoring
+
+Stay informed about the device's internet status with high precision.
+
+```dart
+// Initialize monitoring
+await NetworkConnectivity.init(
+  onConnectivityChanged: (status) {
+    print('Type: ${status.connectionType.name}, Connected: ${status.isConnected}');
+  },
+);
+
+// Check connection quality (Excellent, Good, Fair, Poor)
+final quality = await NetworkConnectivity.getConnectionQuality();
+print('Quality: ${quality.name} ${quality.icon}');
+
+// Wait for connection before proceeding
+await NetworkConnectivity.waitForConnection(timeout: Duration(seconds: 10));
+```
+
+### 3. Location & Geocoding
+
+Easily handle GPS and address conversions.
+
+```dart
+// Get current location
+final latLng = await LocationService.instance.getCurrentLatLng();
+
+// Reverse Geocoding: Coordinates to Address
+final address = await LocationService.instance.getFormattedAddress(6.5244, 3.3792);
+
+// Calculate distance between two points
+double distance = LocationService.instance.calculateDistance(lat1, lon1, lat2, lon2);
+```
+
+### 4. Performance: Debouncer, Throttler & Rate Limiter
+
+Optimize expensive operations like search or button clicks.
+
+```dart
+final searchDebouncer = Debouncer(delay: Duration(milliseconds: 500));
+final loginThrottler = Throttler(duration: Duration(seconds: 2));
+final apiLimiter = RateLimiter(maxCalls: 5, period: Duration(minutes: 1));
+
+// Usage in UI
+onChanged: (val) => searchDebouncer(() => performSearch(val));
+onPressed: () => loginThrottler(() => attemptLogin());
+
+// Rate Limiter check
+if (apiLimiter(() => callExpensiveAPI())) {
+  print('API Call Successful');
+} else {
+  print('Rate limit exceeded. Try again in ${apiLimiter.timeUntilNextCall}');
+}
+```
+
+### 5. Storage Options
+
+```dart
+// Persistent Storage (Hive) - Ideal for large data
+await HiveStorageService.instance.setString('user_name', 'Innocent');
+
+// Secure Storage - Ideal for Tokens/Secrets
+await SecureStorageService.instance.setString('auth_token', 'eyJhbGci...');
+
+// SharedPreferences - Ideal for UI Settings
+await SharedPrefStorage.instance.setBool('is_dark_mode', true);
+```
+
+### 6. Advanced Extensions
+
+```dart
+// String Validations & Masking
+'dev@example.com'.isValidEmail;       // true
+'admin@gmail.com'.maskEmail;         // a****@gmail.com
+
+// Currency & Formatting
+1500000.toCurrency();                // ₦1,500,000.00
+DateTime.now().toReadableString();   // 2 minutes ago
+
+// Collections
+List items = [1, 2, 2, 3].distinct(); // [1, 2, 3]
+```
+
+### 7. Encryption & Security
+
+```dart
+// AES Encryption
+String encrypted = EncryptionUtils.aesEncrypt('Sensitive Data', 'my-secret-key');
+String decrypted = EncryptionUtils.aesDecrypt(encrypted, 'my-secret-key');
+
+// Generate Secure Tokens
+String otp = EncryptionUtils.generateOTP(6);
+String uuid = EncryptionUtils.generateUUID();
+```
+
+---
+
+## 🇳🇬 Nigerian-Specific Features
+
+- **NUBAN Validation**: Validate bank account numbers with `BankUtils.validateAccount`.
+- **Full Bank List**: Access all commercial and microfinance banks in Nigeria.
+- **Identity Validation**: Built-in validators for **BVN**, **NIN**, and **Phone Numbers**.
+- **Geography**: Complete offline list of all 36 Nigerian states + FCT.
+- **Currency**: Native support for the `₦` symbol and local formatting.
+
+---
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+## ⭐ Support
+
+If you find this package useful, please consider giving it a star on [GitHub](https://github.com/mhista/common_utils)!
+
+**Author**: Diwe Innocent  
+**Email**: diweesomchi@gmail.com  
+**Website**: [https://innocentdiwe.qzz.io](https://innocentdiwe.qzz.io)

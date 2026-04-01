@@ -37,18 +37,21 @@ abstract class VideoItem<T> extends Equatable {
   /// The actual data object (PostModel, ReelModel, etc.)
   final T data;
 
+  final Map<String, String> headers;
+
   const VideoItem({
     required this.id,
     required this.videoUrl,
     required this.data,
     this.thumbnailUrl,
+    this.headers = const {},   
   });
 
   /// Create a copy with updated data (for state changes like likes)
   VideoItem<T> copyWithData(T newData);
 
   @override
-  List<Object?> get props => [id, videoUrl, thumbnailUrl, data];
+  List<Object?> get props => [id, videoUrl, thumbnailUrl, data, headers];
 }
 
 

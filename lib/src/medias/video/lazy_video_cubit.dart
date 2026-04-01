@@ -1,23 +1,32 @@
 // ═════════════════════════════════════════════════════════════════════
 // FILE: lazy_video_cubit.dart
 //
-// BUG 3 FIX — video keeps playing after app restart / hot reload:
-// On restart, the VideoPlayerController is disposed by the OS but the
-// Cubit's state still has it in `controllers` and `playingVideos`.
-// When the app restarts and VisibilityDetector fires with fraction=0.0
-// on the first frame (widget not yet laid out), the old code ignored
-// fraction=0.0 because it checked `> 0.5`. The controller was never
-// paused because it was never re-initialized with the new instance.
+// CHANGES — HTTP header support added:
 //
-// Fix: `pauseAll()` is now called in LazyVideoCubit's constructor so
-// state starts clean. Also added `_isValidController` check — if the
-// VideoPlayerController reports it is not initialized, we remove it
-// from state immediately rather than treating it as playing.
+//   Global headers (apply to every video in this cubit instance):
+//     cubit.setHeaders({'Authorization': 'Bearer $token'});
+//     cubit.addHeader('X-Client-ID', '123');
+//     cubit.removeHeader('X-Client-ID');
+//     cubit.clearHeaders();
+//     cubit.currentHeaders   // read-only snapshot
 //
-// BUG: video not stopping when scrolling past card A → image card B → C:
-// Fixed by score-based arbitration — cubit tracks visible fraction per
-// video and picks the single highest scorer. Dropping below 0.4 means
-// no winner among remaining videos = everything pauses.
+//   Per-video headers (merged on top of global at init time):
+//     cubit.onVideoVisibilityChanged(
+//       videoId, videoUrl, fraction,
+//       headers: {'X-Video-Token': 'abc'},
+//     );
+//
+//   Merge order: global headers ← per-video headers
+//   (per-video values win on key collision)
+//
+//   Constructor also accepts initial headers:
+//     LazyVideoCubit(headers: {'Authorization': 'Bearer $token'})
+//
+//   IMPORTANT: headers only affect controllers initialized AFTER they
+//   are set. Already-playing controllers are not restarted. If you
+//   need to rotate a token mid-session, call setHeaders() then
+//   manually call onVideoHidden() + onVideoVisibilityChanged() on
+//   any currently loaded videos to force re-init.
 // ═════════════════════════════════════════════════════════════════════
 
 import 'dart:async';
@@ -30,31 +39,84 @@ part 'lazy_video_state.dart';
 part 'lazy_video_cubit.freezed.dart';
 
 class LazyVideoCubit extends Cubit<LazyVideoState> {
-  LazyVideoCubit() : super(const LazyVideoState());
+  /// Optional initial headers — e.g. {'Authorization': 'Bearer $token'}.
+  LazyVideoCubit({Map<String, String> headers = const {}})
+      : _globalHeaders = Map<String, String>.from(headers),
+        super(const LazyVideoState());
+
+  // ── Header state ──────────────────────────────────────────────────
+
+  /// Headers sent with every VideoPlayerController.networkUrl call.
+  /// Keyed by header name (case-sensitive).
+  final Map<String, String> _globalHeaders;
+
+  /// Per-video header overrides stored at onVideoVisibilityChanged time.
+  /// These are merged on top of [_globalHeaders] when the controller inits.
+  final Map<String, Map<String, String>> _perVideoHeaders = {};
+
+  // ── Header API ────────────────────────────────────────────────────
+
+  /// Replaces ALL global headers.
+  /// Does not affect already-initialized controllers.
+  void setHeaders(Map<String, String> headers) {
+    _globalHeaders
+      ..clear()
+      ..addAll(headers);
+  }
+
+  /// Adds or overwrites a single global header.
+  void addHeader(String key, String value) => _globalHeaders[key] = value;
+
+  /// Removes a single global header by key. No-op if key is absent.
+  void removeHeader(String key) => _globalHeaders.remove(key);
+
+  /// Removes all global headers.
+  void clearHeaders() => _globalHeaders.clear();
+
+  /// Read-only snapshot of the current global headers.
+  Map<String, String> get currentHeaders =>
+      Map<String, String>.unmodifiable(_globalHeaders);
+
+  /// Builds the final header map for [videoId] by merging global headers
+  /// with any per-video overrides (per-video wins on collision).
+  Map<String, String> _headersFor(String videoId) {
+    final perVideo = _perVideoHeaders[videoId];
+    if (perVideo == null || perVideo.isEmpty) return Map.from(_globalHeaders);
+    return {..._globalHeaders, ...perVideo};
+  }
+
+  // ── Internal state ────────────────────────────────────────────────
 
   final Map<String, bool> _initializationStatus = {};
   final Set<String> _disposingControllers = {};
   int _currentInitializations = 0;
   final int _maxConcurrentInits = 2;
 
-  // Score map: videoId → last reported visibleFraction
   final Map<String, double> _scores = {};
   Timer? _debounce;
 
   // ── Public API ────────────────────────────────────────────────────
 
   /// Called every time VisibilityDetector reports a fraction change.
-  /// Debounces 150ms then picks the single highest-scoring video to play.
+  ///
+  /// [headers] — optional per-video headers merged on top of global ones.
+  /// Supply this on the first call (when fraction > 0.1) to attach token
+  /// scoped to this video, e.g. a signed CDN URL header.
   Future<void> onVideoVisibilityChanged(
     String videoId,
     String videoUrl,
-    double fraction,
-  ) async {
+    double fraction, {
+    Map<String, String>? headers,
+  }) async {
     if (isClosed) return;
 
     _scores[videoId] = fraction;
 
-    // Initialize controller if newly visible and not yet loaded
+    // Store per-video header overrides if supplied
+    if (headers != null && headers.isNotEmpty) {
+      _perVideoHeaders[videoId] = headers;
+    }
+
     if (fraction > 0.1 && !state.controllers.containsKey(videoId)) {
       await _initializeController(videoId, videoUrl);
     }
@@ -63,14 +125,14 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
   }
 
   /// Called when a video definitively leaves the viewport.
-  /// Pauses immediately without debounce.
   void onVideoHidden(String videoId) {
     if (isClosed) return;
 
     _scores.remove(videoId);
 
     final controller = state.controllers[videoId];
-    if (controller != null && controller.value.isInitialized &&
+    if (controller != null &&
+        controller.value.isInitialized &&
         controller.value.isPlaying) {
       controller.pause();
     }
@@ -80,30 +142,24 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
       visibleVideos: Set.from(state.visibleVideos)..remove(videoId),
     ));
 
-    // Re-arbitrate so the next best video can resume
     _scheduleArbitration(delay: const Duration(milliseconds: 100));
 
-    // Dispose after delay if still not visible
     Future.delayed(const Duration(seconds: 5), () {
       if (!_scores.containsKey(videoId)) {
         _safeDisposeController(videoId);
+        _perVideoHeaders.remove(videoId);
       }
     });
   }
 
-  /// Pauses ALL videos. Called when swiping to a new PageView tab.
+  /// Pauses ALL videos. Call when swiping to a different PageView tab.
   void pauseAll() {
     if (isClosed) return;
     _debounce?.cancel();
     _scores.clear();
 
-    for (final entry in state.controllers.entries) {
-      final ctrl = entry.value;
-      // ✅ FIX 3: Check isInitialized before calling pause —
-      // after a restart, stale controllers may not be initialized
-      if (ctrl.value.isInitialized && ctrl.value.isPlaying) {
-        ctrl.pause();
-      }
+    for (final ctrl in state.controllers.values) {
+      if (ctrl.value.isInitialized && ctrl.value.isPlaying) ctrl.pause();
     }
     emit(state.copyWith(playingVideos: {}, visibleVideos: {}));
   }
@@ -119,7 +175,6 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
         playingVideos: Set.from(state.playingVideos)..remove(videoId),
       ));
     } else {
-      // Pause everything else first
       for (final entry in state.controllers.entries) {
         if (entry.key != videoId &&
             entry.value.value.isInitialized &&
@@ -150,13 +205,11 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
     _debounce = Timer(delay, _arbitrate);
   }
 
-  /// Pick the single video with the highest visibility score (> 0.4).
-  /// Play it. Pause everything else.
   void _arbitrate() {
     if (isClosed) return;
 
     String? winner;
-    double best = 0.4; // minimum threshold
+    double best = 0.4;
 
     for (final entry in _scores.entries) {
       if (entry.value > best) {
@@ -170,9 +223,6 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
     for (final entry in state.controllers.entries) {
       final id = entry.key;
       final ctrl = entry.value;
-
-      // ✅ FIX 3: Skip stale / uninitialized controllers — these are
-      // left over from before a hot-restart or after disposal lag.
       if (!ctrl.value.isInitialized) continue;
 
       if (id == winner) {
@@ -199,6 +249,8 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
     try {
       final controller = VideoPlayerController.networkUrl(
         Uri.parse(videoUrl),
+        // ── Merged headers: global + per-video ────────────────────
+        httpHeaders: _headersFor(videoId),
         videoPlayerOptions: VideoPlayerOptions(
           mixWithOthers: true,
           allowBackgroundPlayback: false,
@@ -215,12 +267,11 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
       controller.setLooping(true);
       controller.setVolume(state.isMuted ? 0 : 1);
 
-      final updated = Map<String, VideoPlayerController>.from(state.controllers)
-        ..[videoId] = controller;
-
+      final updated =
+          Map<String, VideoPlayerController>.from(state.controllers)
+            ..[videoId] = controller;
       emit(state.copyWith(controllers: updated));
 
-      // Immediately arbitrate so this video plays if it should
       _arbitrate();
     } catch (e) {
       debugPrint('Video init failed $videoId: $e');
@@ -233,14 +284,12 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
   Future<void> _safeDisposeController(String videoId) async {
     if (_disposingControllers.contains(videoId)) return;
     _disposingControllers.add(videoId);
-
     try {
       final ctrl = state.controllers[videoId];
       if (ctrl != null) {
         if (ctrl.value.isInitialized && ctrl.value.isPlaying) ctrl.pause();
         await Future.delayed(const Duration(milliseconds: 50));
         await ctrl.dispose();
-
         final updated =
             Map<String, VideoPlayerController>.from(state.controllers)
               ..remove(videoId);
@@ -257,6 +306,7 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
   Future<void> clear() async {
     _debounce?.cancel();
     _scores.clear();
+    _perVideoHeaders.clear();
     for (final id in List.from(state.controllers.keys)) {
       await _safeDisposeController(id);
     }
