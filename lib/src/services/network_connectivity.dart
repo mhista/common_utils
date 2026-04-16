@@ -15,7 +15,8 @@ class NetworkConnectivity {
   static bool _isConnected = false;
 
   /// Stream controller for connectivity changes
-  static final _connectivityController = StreamController<NetworkStatus>.broadcast();
+  static final _connectivityController =
+      StreamController<NetworkStatus>.broadcast();
 
   /// Get singleton instance
   static NetworkConnectivity get instance {
@@ -37,7 +38,7 @@ class NetworkConnectivity {
       (List<ConnectivityResult> results) async {
         final result = results.first;
         _connectionStatus = result;
-        
+
         // Check actual internet connectivity
         final hasInternet = await hasInternetConnection();
         _isConnected = hasInternet;
@@ -101,11 +102,11 @@ class NetworkConnectivity {
     Duration timeout = const Duration(seconds: 5),
   }) async {
     final stopwatch = Stopwatch()..start();
-    
+
     try {
       final result = await InternetAddress.lookup(host).timeout(timeout);
       stopwatch.stop();
-      
+
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
         return PingResult(
           success: true,
@@ -113,7 +114,7 @@ class NetworkConnectivity {
           responseTime: stopwatch.elapsed,
         );
       }
-      
+
       return PingResult(
         success: false,
         host: host,
@@ -134,7 +135,8 @@ class NetworkConnectivity {
   // ==================== Connection Type ====================
 
   /// Get current connection type
-  static ConnectionType get connectionType => _getConnectionType(_connectionStatus);
+  static ConnectionType get connectionType =>
+      _getConnectionType(_connectionStatus);
 
   /// Check if connected via WiFi
   static bool get isWifi => _connectionStatus == ConnectivityResult.wifi;
@@ -143,13 +145,19 @@ class NetworkConnectivity {
   static bool get isMobile => _connectionStatus == ConnectivityResult.mobile;
 
   /// Check if connected via ethernet
-  static bool get isEthernet => _connectionStatus == ConnectivityResult.ethernet;
+  static bool get isEthernet =>
+      _connectionStatus == ConnectivityResult.ethernet;
 
   /// Check if connected via VPN
   static bool get isVPN => _connectionStatus == ConnectivityResult.vpn;
 
   /// Check if connected via Bluetooth
-  static bool get isBluetooth => _connectionStatus == ConnectivityResult.bluetooth;
+  static bool get isBluetooth =>
+      _connectionStatus == ConnectivityResult.bluetooth;
+
+  /// Check if connected via satellite (carrier-provided satellite network)
+  static bool get isSatellite =>
+      _connectionStatus == ConnectivityResult.satellite;
 
   /// Check if no connection
   static bool get isNone => _connectionStatus == ConnectivityResult.none;
@@ -196,45 +204,51 @@ class NetworkConnectivity {
     }
 
     final quality = await getConnectionQuality();
-    
+
     // Estimate speed based on connection type and quality
     double estimatedSpeed = 0;
-    
+
     if (isWifi) {
       switch (quality) {
         case ConnectionQuality.excellent:
           estimatedSpeed = 100; // Mbps
-          break;
         case ConnectionQuality.good:
           estimatedSpeed = 50;
-          break;
         case ConnectionQuality.fair:
           estimatedSpeed = 20;
-          break;
         case ConnectionQuality.poor:
           estimatedSpeed = 5;
-          break;
         case ConnectionQuality.none:
           estimatedSpeed = 0;
-          break;
       }
     } else if (isMobile) {
       switch (quality) {
         case ConnectionQuality.excellent:
           estimatedSpeed = 50; // Mbps (5G/4G+)
-          break;
         case ConnectionQuality.good:
           estimatedSpeed = 20; // 4G
-          break;
         case ConnectionQuality.fair:
           estimatedSpeed = 5; // 3G
-          break;
         case ConnectionQuality.poor:
           estimatedSpeed = 1; // 2G
-          break;
         case ConnectionQuality.none:
           estimatedSpeed = 0;
-          break;
+      }
+    } else if (isSatellite) {
+      // Satellite: typically higher latency but decent throughput.
+      // Starlink-class sits around 50–200 Mbps; legacy LEO/GEO is much slower.
+      // We use a conservative mid-range estimate here.
+      switch (quality) {
+        case ConnectionQuality.excellent:
+          estimatedSpeed = 100; // Mbps (low-earth-orbit, e.g. Starlink)
+        case ConnectionQuality.good:
+          estimatedSpeed = 40;
+        case ConnectionQuality.fair:
+          estimatedSpeed = 10;
+        case ConnectionQuality.poor:
+          estimatedSpeed = 2; // legacy GEO satellite
+        case ConnectionQuality.none:
+          estimatedSpeed = 0;
       }
     }
 
@@ -265,6 +279,8 @@ class NetworkConnectivity {
         return ConnectionType.vpn;
       case ConnectivityResult.bluetooth:
         return ConnectionType.bluetooth;
+      case ConnectivityResult.satellite:
+        return ConnectionType.satellite;
       case ConnectivityResult.other:
         return ConnectionType.other;
       case ConnectivityResult.none:
@@ -327,6 +343,7 @@ enum ConnectionType {
   ethernet,
   vpn,
   bluetooth,
+  satellite,
   other,
   none,
 }
@@ -345,6 +362,8 @@ extension ConnectionTypeExtension on ConnectionType {
         return 'VPN';
       case ConnectionType.bluetooth:
         return 'Bluetooth';
+      case ConnectionType.satellite:
+        return 'Satellite';
       case ConnectionType.other:
         return 'Other';
       case ConnectionType.none:
@@ -364,6 +383,8 @@ extension ConnectionTypeExtension on ConnectionType {
         return '🔒';
       case ConnectionType.bluetooth:
         return '🔵';
+      case ConnectionType.satellite:
+        return '🛰️';
       case ConnectionType.other:
         return '🌐';
       case ConnectionType.none:
@@ -501,6 +522,8 @@ void networkConnectivityExamples() async {
     debugPrint('Connected via WiFi');
   } else if (NetworkConnectivity.isMobile) {
     debugPrint('Connected via Mobile Data');
+  } else if (NetworkConnectivity.isSatellite) {
+    debugPrint('Connected via Satellite');
   }
 
   // Check internet connectivity
@@ -508,8 +531,8 @@ void networkConnectivityExamples() async {
   debugPrint('Has internet: $hasInternet');
 
   // Ping test
-  final _ = await NetworkConnectivity.ping(host: 'google.com');
-  // debugPrint(pingResult);
+  final pingResult = await NetworkConnectivity.ping(host: 'google.com');
+  debugPrint(pingResult.toString());
 
   // Check connection quality
   final quality = await NetworkConnectivity.getConnectionQuality();
@@ -527,7 +550,7 @@ void networkConnectivityExamples() async {
   // Wait for connection
   try {
     await NetworkConnectivity.waitForConnection(
-      timeout: Duration(seconds: 10),
+      timeout: const Duration(seconds: 10),
     );
     debugPrint('Connection established!');
   } catch (e) {
@@ -535,8 +558,8 @@ void networkConnectivityExamples() async {
   }
 
   // Get quick status
-  final _ = NetworkConnectivity.isConnected;
-  final _ = NetworkConnectivity.connectionType;
+  debugPrint('Is connected: ${NetworkConnectivity.isConnected}');
+  debugPrint('Connection type: ${NetworkConnectivity.connectionType}');
 
   // Cleanup
   NetworkConnectivity.dispose();

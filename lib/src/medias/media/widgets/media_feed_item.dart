@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import '../../image/widgets/cached_image_widget.dart';
-import '../../video/lazy_video_cubit.dart';
+import '../../video/video_player/lazy_video_cubit.dart';
 import '../models/media_item.dart';
 import '../models/media_content.dart';
 import '../models/media_type.dart';

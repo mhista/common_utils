@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../pagination_config.dart';
-import 'video_preload_cubit.dart';
-import 'video_item.dart';
+import 'video_player/video_preload_cubit.dart';
+import 'video_player/video_item.dart';
 
 class VideoPaginationCubit<T> extends VideoPreloadCubit<T> {
   final Future<List<VideoItem<T>>> Function(int page) fetchPage;

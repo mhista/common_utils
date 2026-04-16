@@ -28,6 +28,41 @@
 //   manually call onVideoHidden() + onVideoVisibilityChanged() on
 //   any currently loaded videos to force re-init.
 // ═════════════════════════════════════════════════════════════════════
+// ═════════════════════════════════════════════════════════════════════
+// FILE: lazy_video_cubit.dart
+//
+// CHANGES — Query parameter support added (alongside existing headers):
+//
+//   Global query params (appended to every video URL):
+//     cubit.setQueryParameters({'token': bearerToken});
+//     cubit.addQueryParameter('token', bearerToken);
+//     cubit.removeQueryParameter('token');
+//     cubit.clearQueryParameters();
+//     cubit.currentQueryParameters   // read-only snapshot
+//
+//   Per-video query params (merged on top of global at init time):
+//     cubit.setVideoQueryParameters(videoId, {'token': 'abc'});
+//
+//   Constructor — initial query params:
+//     LazyVideoCubit(
+//       headers: {'Authorization': 'Bearer $token'},
+//       queryParameters: {'token': bearerToken}, // opt-in
+//     )
+//
+//   HOW IT WORKS:
+//   When building a VideoPlayerController URL, query params from
+//   [_globalQueryParams] and [_perVideoQueryParams] are merged with any
+//   existing query params already in the URL string. The result is
+//   passed to VideoPlayerController.networkUrl(). Headers are still
+//   applied in parallel — use whichever your backend supports.
+//
+//   MERGE ORDER for both headers and query params:
+//     global ← per-video  (per-video values win on key collision)
+//
+//   IMPORTANT: Changing params after a controller is already initialized
+//   has no effect. Call onVideoHidden() then onVideoVisibilityChanged()
+//   on the video to force re-init with new params.
+// ═════════════════════════════════════════════════════════════════════
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -39,54 +74,24 @@ part 'lazy_video_state.dart';
 part 'lazy_video_cubit.freezed.dart';
 
 class LazyVideoCubit extends Cubit<LazyVideoState> {
-  /// Optional initial headers — e.g. {'Authorization': 'Bearer $token'}.
-  LazyVideoCubit({Map<String, String> headers = const {}})
-      : _globalHeaders = Map<String, String>.from(headers),
+  LazyVideoCubit({
+    Map<String, String> headers = const {},
+    /// Optional: token or other values appended to every video URL as
+    /// query parameters. Leave empty to disable (default behaviour).
+    Map<String, String> queryParameters = const {},
+  })  : _globalHeaders = Map<String, String>.from(headers),
+        _globalQueryParams = Map<String, String>.from(queryParameters),
         super(const LazyVideoState());
 
   // ── Header state ──────────────────────────────────────────────────
-
-  /// Headers sent with every VideoPlayerController.networkUrl call.
-  /// Keyed by header name (case-sensitive).
   final Map<String, String> _globalHeaders;
-
-  /// Per-video header overrides stored at onVideoVisibilityChanged time.
-  /// These are merged on top of [_globalHeaders] when the controller inits.
   final Map<String, Map<String, String>> _perVideoHeaders = {};
 
-  // ── Header API ────────────────────────────────────────────────────
+  // ── Query parameter state ─────────────────────────────────────────
+  final Map<String, String> _globalQueryParams;
+  final Map<String, Map<String, String>> _perVideoQueryParams = {};
 
-  /// Replaces ALL global headers.
-  /// Does not affect already-initialized controllers.
-  void setHeaders(Map<String, String> headers) {
-    _globalHeaders
-      ..clear()
-      ..addAll(headers);
-  }
-
-  /// Adds or overwrites a single global header.
-  void addHeader(String key, String value) => _globalHeaders[key] = value;
-
-  /// Removes a single global header by key. No-op if key is absent.
-  void removeHeader(String key) => _globalHeaders.remove(key);
-
-  /// Removes all global headers.
-  void clearHeaders() => _globalHeaders.clear();
-
-  /// Read-only snapshot of the current global headers.
-  Map<String, String> get currentHeaders =>
-      Map<String, String>.unmodifiable(_globalHeaders);
-
-  /// Builds the final header map for [videoId] by merging global headers
-  /// with any per-video overrides (per-video wins on collision).
-  Map<String, String> _headersFor(String videoId) {
-    final perVideo = _perVideoHeaders[videoId];
-    if (perVideo == null || perVideo.isEmpty) return Map.from(_globalHeaders);
-    return {..._globalHeaders, ...perVideo};
-  }
-
-  // ── Internal state ────────────────────────────────────────────────
-
+  // ── Internal ──────────────────────────────────────────────────────
   final Map<String, bool> _initializationStatus = {};
   final Set<String> _disposingControllers = {};
   int _currentInitializations = 0;
@@ -95,26 +100,113 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
   final Map<String, double> _scores = {};
   Timer? _debounce;
 
-  // ── Public API ────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // HEADER API (unchanged)
+  // ═══════════════════════════════════════════════════════════════════
+
+  void setHeaders(Map<String, String> headers) {
+    _globalHeaders
+      ..clear()
+      ..addAll(headers);
+  }
+
+  void addHeader(String key, String value) => _globalHeaders[key] = value;
+  void removeHeader(String key) => _globalHeaders.remove(key);
+  void clearHeaders() => _globalHeaders.clear();
+  Map<String, String> get currentHeaders =>
+      Map<String, String>.unmodifiable(_globalHeaders);
+
+  // ── Per-video headers ─────────────────────────────────────────────
+  void setVideoHeaders(String videoId, Map<String, String> headers) {
+    _perVideoHeaders[videoId] = Map<String, String>.from(headers);
+  }
+
+  Map<String, String> _headersFor(String videoId) {
+    final perVideo = _perVideoHeaders[videoId];
+    if (perVideo == null || perVideo.isEmpty) return Map.from(_globalHeaders);
+    return {..._globalHeaders, ...perVideo};
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // QUERY PARAMETER API  (new — opt-in)
+  // ═══════════════════════════════════════════════════════════════════
+
+  /// Replaces ALL global query parameters.
+  /// Does not affect already-initialized controllers.
+  void setQueryParameters(Map<String, String> params) {
+    _globalQueryParams
+      ..clear()
+      ..addAll(params);
+  }
+
+  /// Adds or overwrites a single global query parameter.
+  void addQueryParameter(String key, String value) =>
+      _globalQueryParams[key] = value;
+
+  /// Removes a single global query parameter. No-op if absent.
+  void removeQueryParameter(String key) => _globalQueryParams.remove(key);
+
+  /// Removes all global query parameters.
+  void clearQueryParameters() => _globalQueryParams.clear();
+
+  /// Read-only snapshot of the current global query parameters.
+  Map<String, String> get currentQueryParameters =>
+      Map<String, String>.unmodifiable(_globalQueryParams);
+
+  /// Sets per-video query parameters for [videoId].
+  /// These are merged on top of global params at controller init time.
+  void setVideoQueryParameters(String videoId, Map<String, String> params) {
+    _perVideoQueryParams[videoId] = Map<String, String>.from(params);
+  }
+
+  /// Removes per-video query parameters for [videoId].
+  void removeVideoQueryParameters(String videoId) =>
+      _perVideoQueryParams.remove(videoId);
+
+  // ── URL builder ───────────────────────────────────────────────────
+  //
+  // Merges global + per-video query params into the final URL.
+  // If no params are set, the original URL is returned unchanged.
+  // Existing query params already in the URL string are preserved and
+  // take the lowest priority (they can be overridden by global/per-video).
+  String _buildUrl(String videoUrl, String videoId) {
+    final perVideo = _perVideoQueryParams[videoId] ?? const {};
+
+    if (_globalQueryParams.isEmpty && perVideo.isEmpty) return videoUrl;
+
+    final uri = Uri.parse(videoUrl);
+    final merged = {
+      ...uri.queryParameters,   // existing params in URL (lowest priority)
+      ..._globalQueryParams,    // global overrides
+      ...perVideo,              // per-video wins on collision
+    };
+    return uri.replace(queryParameters: merged).toString();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PUBLIC API
+  // ═══════════════════════════════════════════════════════════════════
 
   /// Called every time VisibilityDetector reports a fraction change.
   ///
-  /// [headers] — optional per-video headers merged on top of global ones.
-  /// Supply this on the first call (when fraction > 0.1) to attach token
-  /// scoped to this video, e.g. a signed CDN URL header.
+  /// [headers] — legacy per-video header overrides (still supported).
   Future<void> onVideoVisibilityChanged(
     String videoId,
     String videoUrl,
     double fraction, {
     Map<String, String>? headers,
+    /// Per-video query params supplied at visibility time (optional).
+    Map<String, String>? queryParameters,
   }) async {
     if (isClosed) return;
 
     _scores[videoId] = fraction;
 
-    // Store per-video header overrides if supplied
     if (headers != null && headers.isNotEmpty) {
       _perVideoHeaders[videoId] = headers;
+    }
+    if (queryParameters != null && queryParameters.isNotEmpty) {
+      _perVideoQueryParams[videoId] = queryParameters;
     }
 
     if (fraction > 0.1 && !state.controllers.containsKey(videoId)) {
@@ -124,7 +216,6 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
     _scheduleArbitration();
   }
 
-  /// Called when a video definitively leaves the viewport.
   void onVideoHidden(String videoId) {
     if (isClosed) return;
 
@@ -148,11 +239,11 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
       if (!_scores.containsKey(videoId)) {
         _safeDisposeController(videoId);
         _perVideoHeaders.remove(videoId);
+        _perVideoQueryParams.remove(videoId);
       }
     });
   }
 
-  /// Pauses ALL videos. Call when swiping to a different PageView tab.
   void pauseAll() {
     if (isClosed) return;
     _debounce?.cancel();
@@ -196,7 +287,9 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
     emit(state.copyWith(isMuted: muted));
   }
 
-  // ── Arbitration ───────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // ARBITRATION
+  // ═══════════════════════════════════════════════════════════════════
 
   void _scheduleArbitration({
     Duration delay = const Duration(milliseconds: 150),
@@ -236,7 +329,9 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
     if (!isClosed) emit(state.copyWith(playingVideos: playing));
   }
 
-  // ── Controller lifecycle ──────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // CONTROLLER LIFECYCLE
+  // ═══════════════════════════════════════════════════════════════════
 
   Future<void> _initializeController(String videoId, String videoUrl) async {
     if (_initializationStatus[videoId] == true ||
@@ -247,9 +342,11 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
     _currentInitializations++;
 
     try {
+      // ✅ Build the final URL with any configured query parameters
+      final finalUrl = _buildUrl(videoUrl, videoId);
+
       final controller = VideoPlayerController.networkUrl(
-        Uri.parse(videoUrl),
-        // ── Merged headers: global + per-video ────────────────────
+        Uri.parse(finalUrl),
         httpHeaders: _headersFor(videoId),
         videoPlayerOptions: VideoPlayerOptions(
           mixWithOthers: true,
@@ -307,6 +404,7 @@ class LazyVideoCubit extends Cubit<LazyVideoState> {
     _debounce?.cancel();
     _scores.clear();
     _perVideoHeaders.clear();
+    _perVideoQueryParams.clear();
     for (final id in List.from(state.controllers.keys)) {
       await _safeDisposeController(id);
     }

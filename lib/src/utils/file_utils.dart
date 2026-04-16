@@ -380,10 +380,10 @@ class FileUtils {
     bool allowCompression = true,
   }) async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: _convertFilePickerType(type),
         allowedExtensions: allowedExtensions,
-        allowCompression: allowCompression,
+        // allowCompression: allowCompression,
       );
 
       if (result != null && result.files.isNotEmpty) {
@@ -403,10 +403,10 @@ class FileUtils {
     bool allowCompression = true,
   }) async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: _convertFilePickerType(type),
         allowedExtensions: allowedExtensions,
-        allowCompression: allowCompression,
+        // allowCompression: allowCompression,
         allowMultiple: true,
       );
 
@@ -518,7 +518,7 @@ class FileUtils {
     FilePickerType type = FilePickerType.any,
   }) async {
     try {
-      final result = await FilePicker.platform.saveFile(
+      final result = await FilePicker.saveFile(
         dialogTitle: dialogTitle,
         fileName: fileName,
         type: _convertFilePickerType(type),
@@ -536,7 +536,7 @@ class FileUtils {
     String? dialogTitle,
   }) async {
     try {
-      final result = await FilePicker.platform.getDirectoryPath(
+      final result = await FilePicker.getDirectoryPath(
         dialogTitle: dialogTitle,
       );
       return result;
@@ -548,7 +548,7 @@ class FileUtils {
   /// Clear file picker cache
   static Future<void> clearPickerCache() async {
     try {
-      await FilePicker.platform.clearTemporaryFiles();
+      await FilePicker.clearTemporaryFiles();
     } catch (e) {
       // Failed to clear cache
     }

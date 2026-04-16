@@ -568,7 +568,6 @@ class CurrencyUtils {
 
   // ── In-memory cache (one entry per base currency) ─────────────────
   static final Map<String, _RateCache> _cache = {};
-  static Completer<void>? _fetchInProgress;
 
   /// Optional init (reserved for future API key support)
   static void init({String? openExchangeRatesKey}) {}

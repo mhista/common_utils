@@ -31,6 +31,53 @@
 //   dispose and re-init a single controller with fresh headers.
 // ─────────────────────────────────────────────────────────────────────────────
 // ignore_for_file: unnecessary_cast
+// ─────────────────────────────────────────────────────────────────────────────
+// FILE: video_preload_cubit.dart
+//
+// CHANGES — Query parameter support added (alongside existing headers):
+//
+//   Global query params (appended to every video URL):
+//     cubit.setQueryParameters({'token': bearerToken});
+//     cubit.addQueryParameter('token', bearerToken);
+//     cubit.removeQueryParameter('token');
+//     cubit.clearQueryParameters();
+//     cubit.currentQueryParameters   // read-only snapshot
+//
+//   Per-item query params — two ways to supply them:
+//
+//   1. Via VideoItem (survives list updates — preferred):
+//        VideoItem(
+//          id: '…', videoUrl: '…',
+//          headers: {'Authorization': 'Bearer $t'},
+//          queryParameters: {'token': bearerToken}, // new field
+//          data: …,
+//        )
+//
+//   2. Via setItemQueryParameters() at runtime:
+//        cubit.setItemQueryParameters('itemId', {'token': 'abc'});
+//        cubit.removeItemQueryParameters('itemId');
+//
+//   Constructor — initial query params:
+//     VideoPreloadCubit(
+//       items: items,
+//       headers: {'Authorization': 'Bearer $token'},
+//       queryParameters: {'token': bearerToken},   // opt-in, default empty
+//     )
+//
+//   HOW IT WORKS:
+//   _buildUrl() merges global + VideoItem + runtime query params into the
+//   video URL before passing it to VideoPlayerController.networkUrl().
+//   Headers are still applied in parallel. Use whichever (or both) your
+//   backend supports.
+//
+//   MERGE ORDER:
+//     existing URL params (lowest) ← global ← VideoItem.queryParameters
+//     ← runtime setItemQueryParameters() (highest)
+//
+//   IMPORTANT: Changing params after a controller is already initialized
+//   has no effect. Call reinitItem(itemId) to dispose and re-init.
+// ─────────────────────────────────────────────────────────────────────────────
+// ignore_for_file: unnecessary_cast
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -79,81 +126,56 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
   bool get isExpanded => _isExpanded;
 
   // ── Header state ───────────────────────────────────────────────────
-
-  /// Headers applied to every controller created by this cubit.
   final Map<String, String> _globalHeaders;
-
-  /// Runtime per-item header overrides.
-  /// These are merged on top of global headers AND VideoItem.headers.
   final Map<String, Map<String, String>> _runtimeItemHeaders = {};
+
+  // ── Query parameter state ──────────────────────────────────────────
+  final Map<String, String> _globalQueryParams;
+  final Map<String, Map<String, String>> _runtimeItemQueryParams = {};
 
   // ── Constructor ────────────────────────────────────────────────────
 
   VideoPreloadCubit({
     required List<VideoItem<T>> items,
     VideoPreloadConfig? config,
-    /// Initial global headers, e.g. {'Authorization': 'Bearer $token'}.
     Map<String, String> headers = const {},
+    /// Optional: query parameters appended to every video URL.
+    /// Leave empty (default) to keep existing behaviour unchanged.
+    Map<String, String> queryParameters = const {},
   })  : _items = items,
         _globalHeaders = Map<String, String>.from(headers),
+        _globalQueryParams = Map<String, String>.from(queryParameters),
         config = config ??
             VideoPreloadConfig(singleVideoMode: items.length == 1),
         super(const VideoPreloadState.initial()) {
     _globalMuted = this.config.mutedByDefault;
   }
 
-  // ── Global header API ──────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // GLOBAL HEADER API (unchanged)
+  // ═══════════════════════════════════════════════════════════════════
 
-  /// Replaces ALL global headers. Does not restart existing controllers.
   void setHeaders(Map<String, String> headers) {
     _globalHeaders
       ..clear()
       ..addAll(headers);
   }
 
-  /// Adds or overwrites a single global header.
   void addHeader(String key, String value) => _globalHeaders[key] = value;
-
-  /// Removes a single global header. No-op if key is absent.
   void removeHeader(String key) => _globalHeaders.remove(key);
-
-  /// Removes all global headers.
   void clearHeaders() => _globalHeaders.clear();
-
-  /// Read-only snapshot of the current global headers.
   Map<String, String> get currentHeaders =>
       Map<String, String>.unmodifiable(_globalHeaders);
 
   // ── Per-item header API ────────────────────────────────────────────
 
-  /// Sets runtime per-item header overrides for [itemId].
-  /// These are merged on top of global and VideoItem.headers at init time.
-  /// Call [reinitItem] afterwards if the controller is already running.
   void setItemHeaders(String itemId, Map<String, String> headers) {
     _runtimeItemHeaders[itemId] = Map<String, String>.from(headers);
   }
 
-  /// Removes runtime per-item header overrides for [itemId].
   void removeItemHeaders(String itemId) => _runtimeItemHeaders.remove(itemId);
 
-  /// Disposes the controller for [itemId] and re-initializes it from scratch.
-  /// Use this after changing headers for a video that is already playing.
-  Future<void> reinitItem(String itemId) async {
-    await _safeDisposeController(itemId);
-    _initializationStatus.remove(itemId);
-    final item = _items.firstWhere(
-      (i) => i.id == itemId,
-      orElse: () => throw StateError('Item $itemId not found'),
-    );
-    await _initializeController(itemId, item.videoUrl);
-  }
-
-  /// Builds the final merged headers for [itemId]:
-  ///   global headers
-  ///   ← VideoItem.headers (if the VideoItem carries its own headers field)
-  ///   ← runtime setItemHeaders() overrides
   Map<String, String> _headersFor(String itemId) {
-    // Find the item to pull its own headers (if VideoItem exposes them)
     final item = _items.firstWhereOrNull((i) => i.id == itemId);
     final itemHeaders = item?.headers ?? const <String, String>{};
     final runtimeHeaders = _runtimeItemHeaders[itemId] ?? const {};
@@ -164,7 +186,77 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
     };
   }
 
-  // ── Public: Initialize ─────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // GLOBAL QUERY PARAMETER API  (new — opt-in)
+  // ═══════════════════════════════════════════════════════════════════
+
+  /// Replaces ALL global query parameters.
+  /// Does not restart already-initialized controllers.
+  void setQueryParameters(Map<String, String> params) {
+    _globalQueryParams
+      ..clear()
+      ..addAll(params);
+  }
+
+  void addQueryParameter(String key, String value) =>
+      _globalQueryParams[key] = value;
+
+  void removeQueryParameter(String key) => _globalQueryParams.remove(key);
+  void clearQueryParameters() => _globalQueryParams.clear();
+
+  Map<String, String> get currentQueryParameters =>
+      Map<String, String>.unmodifiable(_globalQueryParams);
+
+  // ── Per-item query param API ───────────────────────────────────────
+
+  void setItemQueryParameters(String itemId, Map<String, String> params) {
+    _runtimeItemQueryParams[itemId] = Map<String, String>.from(params);
+  }
+
+  void removeItemQueryParameters(String itemId) =>
+      _runtimeItemQueryParams.remove(itemId);
+
+  /// Disposes the controller for [itemId] and re-initializes from scratch.
+  /// Call this after changing headers or query params for a live video.
+  Future<void> reinitItem(String itemId) async {
+    await _safeDisposeController(itemId);
+    _initializationStatus.remove(itemId);
+    final item = _items.firstWhere(
+      (i) => i.id == itemId,
+      orElse: () => throw StateError('Item $itemId not found'),
+    );
+    await _initializeController(itemId, item.videoUrl);
+  }
+
+  // ── URL builder ────────────────────────────────────────────────────
+  //
+  // Merges all layers of query params into the final URL.
+  // If no params are set at any level, the original URL is returned
+  // unchanged — zero overhead, fully backward-compatible.
+  String _buildUrl(String videoUrl, String itemId) {
+    final item = _items.firstWhereOrNull((i) => i.id == itemId);
+    final itemQueryParams = item?.queryParameters ?? const <String, String>{};
+    final runtimeParams = _runtimeItemQueryParams[itemId] ?? const {};
+
+    if (_globalQueryParams.isEmpty &&
+        itemQueryParams.isEmpty &&
+        runtimeParams.isEmpty) {
+      return videoUrl;
+    }
+
+    final uri = Uri.parse(videoUrl);
+    final merged = {
+      ...uri.queryParameters,  // existing URL params (lowest priority)
+      ..._globalQueryParams,   // global overrides
+      ...itemQueryParams,      // VideoItem-level params
+      ...runtimeParams,        // runtime setItemQueryParameters() (highest)
+    };
+    return uri.replace(queryParameters: merged).toString();
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // PUBLIC: Initialize
+  // ═══════════════════════════════════════════════════════════════════
 
   Future<void> init(int currentIndex) async {
     if (_items.isEmpty || currentIndex >= _items.length) {
@@ -201,7 +293,9 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
     );
   }
 
-  // ── Public: Update items ───────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // PUBLIC: Update items
+  // ═══════════════════════════════════════════════════════════════════
 
   Future<void> updateItems(List<VideoItem<T>> newItems) async {
     final newItemIds = newItems.map((i) => i.id).toSet();
@@ -211,6 +305,7 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
     for (final id in toDispose) {
       await _safeDisposeController(id);
       _runtimeItemHeaders.remove(id);
+      _runtimeItemQueryParams.remove(id);
     }
 
     _items = newItems;
@@ -245,7 +340,9 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
     }
   }
 
-  // ── Public: Playback controls ──────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // PUBLIC: Playback controls
+  // ═══════════════════════════════════════════════════════════════════
 
   void togglePlayPause() {
     final currentState = state;
@@ -295,7 +392,9 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
     }
   }
 
-  // ── Public: Controller access ──────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // PUBLIC: Controller access
+  // ═══════════════════════════════════════════════════════════════════
 
   VideoPlayerController? getControllerForIndex(int index) {
     if (index >= 0 && index < _items.length) {
@@ -307,7 +406,9 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
   VideoPlayerController? getControllerForItemId(String itemId) =>
       _controllers[itemId];
 
-  // ── Public: Preload management ─────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // PUBLIC: Preload management
+  // ═══════════════════════════════════════════════════════════════════
 
   Future<void> disposeExcept(int currentIndex) async {
     if (currentIndex >= _items.length) return;
@@ -348,7 +449,9 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
     }
   }
 
-  // ── Internal: Controller management ───────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // INTERNAL: Controller management
+  // ═══════════════════════════════════════════════════════════════════
 
   Future<void> _disposeDistantControllers(int currentIndex) async {
     final keepIds = <String>{};
@@ -417,9 +520,11 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
     _currentInitializations++;
 
     try {
+      // ✅ Build the final URL with any configured query parameters
+      final finalUrl = _buildUrl(videoUrl, itemId);
+
       final controller = VideoPlayerController.networkUrl(
-        Uri.parse(videoUrl),
-        // ── Merged headers for this item ──────────────────────────
+        Uri.parse(finalUrl),
         httpHeaders: _headersFor(itemId),
         videoPlayerOptions: VideoPlayerOptions(
           mixWithOthers: true,
@@ -457,7 +562,9 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
         (Uri.tryParse(_items[index].videoUrl)?.isAbsolute ?? false);
   }
 
-  // ── Cleanup ────────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // CLEANUP
+  // ═══════════════════════════════════════════════════════════════════
 
   Future<void> clear() async {
     _currentInitializations = 0;
@@ -468,6 +575,7 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
     _initializationStatus.clear();
     _disposingControllers.clear();
     _runtimeItemHeaders.clear();
+    _runtimeItemQueryParams.clear();
   }
 
   @protected
@@ -480,7 +588,7 @@ class VideoPreloadCubit<T> extends Cubit<VideoPreloadState<T>> {
   }
 }
 
-// ── Extension helper used internally ─────────────────────────────────
+// ── Extension helper ──────────────────────────────────────────────────
 
 extension _FirstWhereOrNull<T> on List<T> {
   T? firstWhereOrNull(bool Function(T) test) {
