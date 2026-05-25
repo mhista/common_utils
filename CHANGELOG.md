@@ -10,7 +10,7 @@
 ### 🌍Bug fix
 
 ### 🌍 Color, File utilities (Major upgrade)
-
+  
 The file and color utilities upgraded to be more extensive.
 
 ## 2.0.1
@@ -28,7 +28,7 @@ data sources, lazy loading, and offline state lists for 8 countries.
 **New classes**
 - `Country` — rich model with name, ISO code, dial code, emoji flag, region,
   sub-region, capital, currency, languages, population. Works with all three sources.
-- `CountryState` — state/region model with `fromJson` for live API responses.
+- `CountryState` — state/region model with `fromJson` for live API responses. 
 - `CountryCity` — city model with `fromJson` for live API responses.
 - `DialCode` — lightweight view of a country used in dial-code pickers
   (`display` → "🇳🇬 +234", `fullDisplay` → "🇳🇬 Nigeria (+234)").
