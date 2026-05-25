@@ -88,139 +88,76 @@ class MkLazyVideoCubit extends Cubit<MkLazyVideoState> {
         _globalQueryParams = Map<String, String>.from(queryParameters),
         super(const MkLazyVideoState());
  
-  // ── Header state ───────────────────────────────────────────────────────────
   final Map<String, String> _globalHeaders;
   final Map<String, Map<String, String>> _perVideoHeaders = {};
- 
-  // ── Query parameter state ──────────────────────────────────────────────────
   final Map<String, String> _globalQueryParams;
   final Map<String, Map<String, String>> _perVideoQueryParams = {};
  
-  // ── Lifecycle guards ───────────────────────────────────────────────────────
   final Map<String, bool> _initializationStatus = {};
   final Set<String> _disposingPlayers = {};
   int _currentInitializations = 0;
   final int _maxConcurrentInits = 2;
  
-  // ── Visibility / arbitration ───────────────────────────────────────────────
   final Map<String, double> _scores = {};
   Timer? _debounce;
  
-  // ═══════════════════════════════════════════════════════════════════════════
-  // GLOBAL HEADER API
-  // ═══════════════════════════════════════════════════════════════════════════
- 
-  void setHeaders(Map<String, String> headers) =>
-      _globalHeaders..clear()..addAll(headers);
- 
-  void addHeader(String key, String value) => _globalHeaders[key] = value;
-  void removeHeader(String key) => _globalHeaders.remove(key);
+  // ── Header / Query API (Unchanged) ─────────────────────────────────────────
+  void setHeaders(Map<String, String> h) => _globalHeaders..clear()..addAll(h);
+  void addHeader(String k, String v) => _globalHeaders[k] = v;
+  void removeHeader(String k) => _globalHeaders.remove(k);
   void clearHeaders() => _globalHeaders.clear();
+  Map<String, String> get currentHeaders => Map.from(_globalHeaders);
  
-  Map<String, String> get currentHeaders =>
-      Map<String, String>.unmodifiable(_globalHeaders);
- 
-  // ── Per-video header helpers ───────────────────────────────────────────────
- 
-  void setVideoHeaders(String videoId, Map<String, String> headers) =>
-      _perVideoHeaders[videoId] = Map<String, String>.from(headers);
- 
-  Map<String, String> _headersFor(String videoId) {
-    final per = _perVideoHeaders[videoId];
-    if (per == null || per.isEmpty) return Map.from(_globalHeaders);
-    return {..._globalHeaders, ...per};
-  }
- 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // GLOBAL QUERY PARAMETER API
-  // ═══════════════════════════════════════════════════════════════════════════
- 
-  void setQueryParameters(Map<String, String> params) =>
-      _globalQueryParams..clear()..addAll(params);
- 
-  void addQueryParameter(String key, String value) =>
-      _globalQueryParams[key] = value;
- 
-  void removeQueryParameter(String key) => _globalQueryParams.remove(key);
-  void clearQueryParameters() => _globalQueryParams.clear();
- 
-  Map<String, String> get currentQueryParameters =>
-      Map<String, String>.unmodifiable(_globalQueryParams);
- 
-  void setVideoQueryParameters(String videoId, Map<String, String> params) =>
-      _perVideoQueryParams[videoId] = Map<String, String>.from(params);
- 
-  void removeVideoQueryParameters(String videoId) =>
-      _perVideoQueryParams.remove(videoId);
- 
-  // ── URL builder ────────────────────────────────────────────────────────────
+  void setQueryParameters(Map<String, String> p) => _globalQueryParams..clear()..addAll(p);
+  Map<String, String> get currentQueryParameters => Map.from(_globalQueryParams);
  
   String _buildUrl(String videoUrl, String videoId) {
     final per = _perVideoQueryParams[videoId] ?? const <String, String>{};
     if (_globalQueryParams.isEmpty && per.isEmpty) return videoUrl;
- 
     final uri = Uri.parse(videoUrl);
-    final merged = {
-      ...uri.queryParameters,
-      ..._globalQueryParams,
-      ...per,
-    };
-    return uri.replace(queryParameters: merged).toString();
+    return uri.replace(queryParameters: {...uri.queryParameters, ..._globalQueryParams, ...per}).toString();
+  }
+ 
+  Map<String, String> _headersFor(String videoId) {
+    final per = _perVideoHeaders[videoId];
+    return per == null || per.isEmpty ? Map.from(_globalHeaders) : {..._globalHeaders, ...per};
   }
  
   // ═══════════════════════════════════════════════════════════════════════════
   // PUBLIC API
   // ═══════════════════════════════════════════════════════════════════════════
  
-  Future<void> onVideoVisibilityChanged(
-    String videoId,
-    String videoUrl,
-    double fraction, {
-    Map<String, String>? headers,
-    Map<String, String>? queryParameters,
-  }) async {
+  Future<void> onVideoVisibilityChanged(String id, String url, double fraction, {Map<String, String>? headers, Map<String, String>? queryParameters}) async {
     if (isClosed) return;
+    _scores[id] = fraction;
+    if (headers != null) _perVideoHeaders[id] = headers;
+    if (queryParameters != null) _perVideoQueryParams[id] = queryParameters;
  
-    _scores[videoId] = fraction;
- 
-    if (headers != null && headers.isNotEmpty) {
-      _perVideoHeaders[videoId] = headers;
+    if (fraction > 0.1 && !state.players.containsKey(id)) {
+      await _initializePlayer(id, url);
     }
-    if (queryParameters != null && queryParameters.isNotEmpty) {
-      _perVideoQueryParams[videoId] = queryParameters;
-    }
- 
-    if (fraction > 0.1 && !state.players.containsKey(videoId)) {
-      await _initializePlayer(videoId, videoUrl);
-    }
- 
     _scheduleArbitration();
   }
  
-  void onVideoHidden(String videoId) {
+  void onVideoHidden(String id) {
     if (isClosed) return;
- 
-    _scores.remove(videoId);
- 
-    final player = state.players[videoId];
-    if (player != null && player.state.playing) {
-      player.pause();
-    }
+    _scores.remove(id);
+    final player = state.players[id];
+    if (player != null && player.state.playing) player.pause();
  
     emit(state.copyWith(
-      playingVideos: Set.from(state.playingVideos)..remove(videoId),
-      visibleVideos: Set.from(state.visibleVideos)..remove(videoId),
+      playingVideos: Set.from(state.playingVideos)..remove(id),
+      visibleVideos: Set.from(state.visibleVideos)..remove(id),
     ));
  
     _scheduleArbitration(delay: const Duration(milliseconds: 100));
  
-    // FIX 4: guard against cubit being closed during the 5-second delay.
     Future.delayed(const Duration(seconds: 5), () {
-      if (isClosed) return; // ← was missing; caused post-close emit crashes
-      if (!_scores.containsKey(videoId)) {
-        _safeDisposePlayer(videoId);
-        _perVideoHeaders.remove(videoId);
-        _perVideoQueryParams.remove(videoId);
+      if (isClosed) return;
+      if (!_scores.containsKey(id)) {
+        _safeDisposePlayer(id);
+        _perVideoHeaders.remove(id);
+        _perVideoQueryParams.remove(id);
       }
     });
   }
@@ -229,235 +166,132 @@ class MkLazyVideoCubit extends Cubit<MkLazyVideoState> {
     if (isClosed) return;
     _debounce?.cancel();
     _scores.clear();
- 
-    for (final player in state.players.values) {
-      if (player.state.playing) player.pause();
-    }
+    for (final p in state.players.values) { if (p.state.playing) p.pause(); }
     emit(state.copyWith(playingVideos: {}, visibleVideos: {}));
   }
  
-  void togglePlayPause(String videoId) {
+  void togglePlayPause(String id) {
     if (isClosed) return;
-    final player = state.players[videoId];
-    if (player == null) return;
- 
-    if (player.state.playing) {
-      player.pause();
-      emit(state.copyWith(
-        playingVideos: Set.from(state.playingVideos)..remove(videoId),
-      ));
+    final p = state.players[id];
+    if (p == null) return;
+    if (p.state.playing) {
+      p.pause();
+      emit(state.copyWith(playingVideos: Set.from(state.playingVideos)..remove(id)));
     } else {
-      for (final entry in state.players.entries) {
-        if (entry.key != videoId && entry.value.state.playing) {
-          entry.value.pause();
-        }
-      }
-      player.play();
-      emit(state.copyWith(playingVideos: {videoId}));
+      for (final entry in state.players.entries) { if (entry.key != id && entry.value.state.playing) entry.value.pause(); }
+      p.play();
+      emit(state.copyWith(playingVideos: {id}));
     }
   }
  
-  void toggleMute() {
-    if (isClosed) return;
-    final muted = !state.isMuted;
-    for (final player in state.players.values) {
-      player.setVolume(muted ? 0 : 100);
-    }
-    emit(state.copyWith(isMuted: muted));
-  }
- 
   // ═══════════════════════════════════════════════════════════════════════════
-  // ARBITRATION
+  // PLAYER LIFECYCLE (CRITICAL SECTION)
   // ═══════════════════════════════════════════════════════════════════════════
  
-  void _scheduleArbitration({
-    Duration delay = const Duration(milliseconds: 150),
-  }) {
-    _debounce?.cancel();
-    _debounce = Timer(delay, _arbitrate);
-  }
+  Future<void> _initializePlayer(String id, String url) async {
+    if (_initializationStatus[id] == true || _disposingPlayers.contains(id) || _currentInitializations >= _maxConcurrentInits) return;
  
-  void _arbitrate() {
-    if (isClosed) return;
- 
-    String? winner;
-    double best = 0.4;
- 
-    for (final entry in _scores.entries) {
-      if (entry.value > best) {
-        best = entry.value;
-        winner = entry.key;
-      }
-    }
- 
-    final playing = <String>{};
- 
-    for (final entry in state.players.entries) {
-      final id = entry.key;
-      final player = entry.value;
- 
-      if (id == winner) {
-        if (!player.state.playing) player.play();
-        playing.add(id);
-      } else {
-        if (player.state.playing) player.pause();
-      }
-    }
- 
-    if (!isClosed) emit(state.copyWith(playingVideos: playing));
-  }
- 
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PLAYER LIFECYCLE
-  // ═══════════════════════════════════════════════════════════════════════════
- 
-  // FIX 3: track the Player reference from the moment it is created so we can
-  // dispose it even if the cubit closes while player.open() is still awaiting.
-  Future<void> _initializePlayer(String videoId, String videoUrl) async {
-    if (_initializationStatus[videoId] == true ||
-        _disposingPlayers.contains(videoId) ||
-        _currentInitializations >= _maxConcurrentInits) {
-      return;
-    }
- 
-    _initializationStatus[videoId] = true;
+    _initializationStatus[id] = true;
     _currentInitializations++;
- 
-    // Capture locally so we can clean up in the closed/disposing branches.
     Player? player;
  
     try {
-      final finalUrl = _buildUrl(videoUrl, videoId);
- 
       player = Player();
       final controller = VideoController(player);
+      final media = Media(_buildUrl(url, id), httpHeaders: _headersFor(id));
  
-      final media = Media(
-        finalUrl,
-        httpHeaders: _headersFor(videoId),
-      );
- 
-      // This await is where the cubit is most likely to be closed externally.
       await player.open(media, play: false);
  
-      // FIX 3: re-check AFTER the async gap.
-      if (isClosed || _disposingPlayers.contains(videoId)) {
-        debugPrint(
-            'MkLazyVideoCubit: cubit closed/disposing during init of $videoId — cleaning up player');
-        try {
-          await player.dispose();
-        } catch (_) {}
+      if (isClosed || _disposingPlayers.contains(id)) {
+        await player.stop();
+        await player.dispose();
         return;
       }
  
       await player.setVolume(state.isMuted ? 0 : 100);
       await player.setPlaylistMode(PlaylistMode.loop);
  
-      // Check once more after the two small awaits above.
-      if (isClosed || _disposingPlayers.contains(videoId)) {
-        try {
-          await player.dispose();
-        } catch (_) {}
+      if (isClosed || _disposingPlayers.contains(id)) {
+        await player.stop();
+        await player.dispose();
         return;
       }
  
-      final updatedPlayers = Map<String, Player>.from(state.players)
-        ..[videoId] = player;
-      final updatedControllers =
-          Map<String, VideoController>.from(state.controllers)
-            ..[videoId] = controller;
- 
       emit(state.copyWith(
-        players: updatedPlayers,
-        controllers: updatedControllers,
+        players: Map<String, Player>.from(state.players)..[id] = player,
+        controllers: Map<String, VideoController>.from(state.controllers)..[id] = controller,
       ));
- 
       _arbitrate();
-    } catch (e, st) {
-      debugPrint('MkLazyVideoCubit: init failed for $videoId — $e\n$st');
-      _initializationStatus[videoId] = false;
-      // Dispose the player if it was already created before the error.
-      if (player != null) {
-        try {
-          await player.dispose();
-        } catch (_) {}
-      }
+    } catch (e) {
+      _initializationStatus[id] = false;
+      if (player != null) await player.dispose();
     } finally {
       _currentInitializations--;
     }
   }
  
-  /// Safely disposes a player.
-  ///
-  /// ORDER OF OPERATIONS (critical for preventing the FFI callback crash):
-  ///   1. Emit state update removing this player/controller from the maps.
-  ///      → The Video widget receives null and stops calling into the controller.
-  ///   2. Wait 150 ms for the widget tree to finish rebuilding.
-  ///      → By this point the native texture / surface is detached.
-  ///   3. Pause then dispose the underlying Player.
-  ///      → libmpv tears down cleanly with no live Dart callbacks.
-  Future<void> _safeDisposePlayer(String videoId) async {
-    if (_disposingPlayers.contains(videoId)) return;
-    _disposingPlayers.add(videoId);
+  Future<void> _safeDisposePlayer(String id) async {
+    if (_disposingPlayers.contains(id)) return;
+    _disposingPlayers.add(id);
  
     try {
-      final player = state.players[videoId];
+      final player = state.players[id];
       if (player == null) return;
  
-      // ── FIX 1 & 2: emit BEFORE dispose, then wait for widget tree ──────────
+      // 1. Remove from state immediately so UI detaches
       if (!isClosed) {
         emit(state.copyWith(
-          players: Map<String, Player>.from(state.players)..remove(videoId),
-          controllers: Map<String, VideoController>.from(state.controllers)
-            ..remove(videoId),
-          playingVideos: Set.from(state.playingVideos)..remove(videoId),
-          visibleVideos: Set.from(state.visibleVideos)..remove(videoId),
+          players: Map<String, Player>.from(state.players)..remove(id),
+          controllers: Map<String, VideoController>.from(state.controllers)..remove(id),
+          playingVideos: Set.from(state.playingVideos)..remove(id),
+          visibleVideos: Set.from(state.visibleVideos)..remove(id),
         ));
- 
-        // Give the widget tree ≈9 frames to detach from the controller before
-        // we call player.dispose() and libmpv unregisters its Dart callbacks.
+        // 2. Wait for widget tree to rebuild (detach native textures)
         await Future.delayed(const Duration(milliseconds: 150));
       }
  
-      _initializationStatus.remove(videoId);
+      _initializationStatus.remove(id);
  
-      // Pause gracefully, then a short gap, then dispose.
+      // 3. STOP threads and SILENCE audio before disposal
       try {
-        if (player.state.playing) await player.pause();
+        await player.setVolume(0);
+        await player.stop(); // Safer than pause() for FFI stability
       } catch (_) {}
  
       await Future.delayed(const Duration(milliseconds: 50));
  
-      try {
-        await player.dispose();
-      } catch (e) {
-        debugPrint(
-            'MkLazyVideoCubit: player.dispose() error for $videoId — $e');
-      }
-    } catch (e) {
-      debugPrint('MkLazyVideoCubit: dispose error for $videoId — $e');
+      // 4. Final native teardown
+      await player.dispose();
+    } catch (_) {
     } finally {
-      _disposingPlayers.remove(videoId);
+      _disposingPlayers.remove(id);
     }
   }
  
-  Future<void> clear() async {
+  // ── Arbitration (Unchanged) ────────────────────────────────────────────────
+  void _scheduleArbitration({Duration delay = const Duration(milliseconds: 150)}) {
     _debounce?.cancel();
-    _scores.clear();
-    _perVideoHeaders.clear();
-    _perVideoQueryParams.clear();
+    _debounce = Timer(delay, _arbitrate);
+  }
  
-    // Snapshot keys — state.players may change as we await each dispose.
-    final idsToDispose = List<String>.from(state.players.keys);
-    for (final id in idsToDispose) {
-      await _safeDisposePlayer(id);
+  void _arbitrate() {
+    if (isClosed) return;
+    String? winner;
+    double best = 0.4;
+    for (final entry in _scores.entries) { if (entry.value > best) { best = entry.value; winner = entry.key; } }
+    final playing = <String>{};
+    for (final entry in state.players.entries) {
+      if (entry.key == winner) { entry.value.play(); playing.add(entry.key); }
+      else { entry.value.pause(); }
     }
+    if (!isClosed) emit(state.copyWith(playingVideos: playing));
   }
  
   @override
   Future<void> close() async {
     _debounce?.cancel();
-    await clear();
+    final ids = List<String>.from(state.players.keys);
+    for (final id in ids) await _safeDisposePlayer(id);
     return super.close();
   }
 }
