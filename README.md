@@ -61,7 +61,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  common_utils2: ^2.0.0
+  common_utils2: ^3.0.4
 ```
 
 ---
