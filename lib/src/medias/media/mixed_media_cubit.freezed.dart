@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'mixed_media_cubit.dart';
@@ -9,6 +9,7 @@ part of 'mixed_media_cubit.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $MixedMediaStateCopyWith<T, MixedMediaState<T>> get copyWith => _$MixedMediaStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MixedMediaState<T>&&const DeepCollectionEquality().equals(other.items, items)&&const DeepCollectionEquality().equals(other.preloadedIndices, preloadedIndices)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  final _this = this as MixedMediaState<T>;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MixedMediaState<T>&&const DeepCollectionEquality().equals(other.items, _this.items)&&const DeepCollectionEquality().equals(other.preloadedIndices, _this.preloadedIndices)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.error, _this.error) || other.error == _this.error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(items),const DeepCollectionEquality().hash(preloadedIndices),isLoading,error);
+int get hashCode {
+  final _this = this as MixedMediaState<T>;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.items),const DeepCollectionEquality().hash(_this.preloadedIndices),_this.isLoading,_this.error);
+}
 
 @override
 String toString() {
-  return 'MixedMediaState<$T>(items: $items, preloadedIndices: $preloadedIndices, isLoading: $isLoading, error: $error)';
+  final _this = this as MixedMediaState<T>;
+  return 'MixedMediaState<$T>(items: ${_this.items}, preloadedIndices: ${_this.preloadedIndices}, isLoading: ${_this.isLoading}, error: ${_this.error})';
 }
 
 
@@ -63,7 +69,7 @@ class _$MixedMediaStateCopyWithImpl<T,$Res>
 /// Create a copy of MixedMediaState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? items = null,Object? preloadedIndices = null,Object? isLoading = null,Object? error = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(MixedMediaState(
 items: null == items ? _self.items : items // ignore: cast_nullable_to_non_nullable
 as List<MediaItem<T>>,preloadedIndices: null == preloadedIndices ? _self.preloadedIndices : preloadedIndices // ignore: cast_nullable_to_non_nullable
 as Set<int>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
@@ -209,7 +215,7 @@ return $default(_that.items,_that.preloadedIndices,_that.isLoading,_that.error);
 
 
 class _MixedMediaState<T> implements MixedMediaState<T> {
-  const _MixedMediaState({final  List<MediaItem<T>> items = const [], final  Set<int> preloadedIndices = const {}, this.isLoading = false, this.error}): _items = items,_preloadedIndices = preloadedIndices;
+  const _MixedMediaState({ List<MediaItem<T>> items = const [],  Set<int> preloadedIndices = const {}, this.isLoading = false, this.error}): _items = items,_preloadedIndices = preloadedIndices;
   
 
  final  List<MediaItem<T>> _items;
@@ -239,16 +245,18 @@ _$MixedMediaStateCopyWith<T, _MixedMediaState<T>> get copyWith => __$MixedMediaS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MixedMediaState<T>&&const DeepCollectionEquality().equals(other._items, _items)&&const DeepCollectionEquality().equals(other._preloadedIndices, _preloadedIndices)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MixedMediaState<T>&&const DeepCollectionEquality().equals(other.items, _items)&&const DeepCollectionEquality().equals(other.preloadedIndices, _preloadedIndices)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),const DeepCollectionEquality().hash(_preloadedIndices),isLoading,error);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_items),const DeepCollectionEquality().hash(_preloadedIndices),isLoading,error);
+}
 
 @override
 String toString() {
-  return 'MixedMediaState<$T>(items: $items, preloadedIndices: $preloadedIndices, isLoading: $isLoading, error: $error)';
+    return 'MixedMediaState<$T>(items: $items, preloadedIndices: $preloadedIndices, isLoading: $isLoading, error: $error)';
 }
 
 

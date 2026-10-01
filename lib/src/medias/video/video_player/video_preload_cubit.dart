@@ -77,7 +77,6 @@
 //   IMPORTANT: Changing params after a controller is already initialized
 //   has no effect. Call reinitItem(itemId) to dispose and re-init.
 // ─────────────────────────────────────────────────────────────────────────────
-// ignore_for_file: unnecessary_cast
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';

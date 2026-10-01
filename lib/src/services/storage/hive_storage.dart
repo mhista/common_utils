@@ -3,17 +3,16 @@
 // ============================================================================
 // Add to pubspec.yaml:
 // dependencies:
-//   hive: ^2.2.3
-//   hive_flutter: ^1.1.0
+//   hive_ce: ^2.16.0
+//   hive_ce_flutter: ^2.4.0
 //
 // dev_dependencies:
-//   hive_generator: ^2.0.1
+//   hive_ce_generator (only if you use TypeAdapters)
 //   build_runner: ^2.4.6
 
 import 'dart:convert';
-import 'package:common_utils2/common_utils2.dart';
 import 'package:flutter/foundation.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_ce_flutter.dart';
 
 
 /// Centralized singleton local storage service using Hive
@@ -699,98 +698,5 @@ class HiveStorageService {
   }
 }
 
-// ============================================================================
-// EXAMPLE USAGE
-// ============================================================================
-
-class HiveStorageExample {
-  final _storage = HiveStorageService.instance;
-
-  // Initialize in main.dart
-  Future<void> initialize() async {
-    await HiveStorageService.init();
-  }
-
-  // Set user when they log in
-  Future<void> onLogin(String userId) async {
-    await _storage.setUser(userId);
-  }
-
-  // Save user data
-  // Future<void> saveUserData({
-  //   required String token,
-  //   required String userId,
-  //   required Map<String, dynamic> profile,
-  // }) async {
-  //   await _storage.setBatch({
-  //     StorageKeys.authToken: token,
-  //     StorageKeys.userId: userId,
-  //     StorageKeys.isLoggedIn: true,
-  //   });
-  //   await _storage.setJson(StorageKeys.userAvatarUrl, profile);
-  // }
-
-  // Get user data
-  // Map<String, dynamic>? getUserData() {
-  //   if (!_storage.getBoolOrDefault(StorageKeys.isLoggedIn, false)) {
-  //     return null;
-  //   }
-
-  //   return {
-  //     'token': _storage.getString(StorageKeys.authToken),
-  //     'userId': _storage.getString(StorageKeys.userId),
-  //     'profile': _storage.getJson(StorageKeys.userAvatarUrl),
-  //   };
-  // }
-
-  // Logout
-  // Future<void> logout() async {
-  //   await _storage.removeBatch([
-  //     StorageKeys.authToken,
-  //     StorageKeys.refreshToken,
-  //     StorageKeys.userId,
-  //     StorageKeys.userEmail,
-  //     StorageKeys.userAvatarUrl,
-  //   ]);
-  //   await _storage.setBool(StorageKeys.isLoggedIn, false);
-  //   await _storage.clearUser();
-  // }
-
-  // Save app settings (global)
-  Future<void> saveSettings({
-    required bool isDarkMode,
-    required String language,
-    required bool notificationsEnabled,
-  }) async {
-    await _storage.setGlobalBool(StorageKeys.isDarkMode, isDarkMode);
-    await _storage.setGlobalString(StorageKeys.language, language);
-    await _storage.setGlobalBool(
-      StorageKeys.notificationsEnabled,
-      notificationsEnabled,
-    );
-  }
-
-  // Get app settings (global)
-  Map<String, dynamic> getSettings() {
-    return {
-      'isDarkMode':
-          _storage.getGlobalData<bool>(
-            StorageKeys.isDarkMode,
-            defaultValue: false,
-          ) ??
-          false,
-      'language':
-          _storage.getGlobalData<String>(
-            StorageKeys.language,
-            defaultValue: 'en',
-          ) ??
-          'en',
-      'notificationsEnabled':
-          _storage.getGlobalData<bool>(
-            StorageKeys.notificationsEnabled,
-            defaultValue: true,
-          ) ??
-          true,
-    };
-  }
-}
+// Usage examples live in the package README and example/ app —
+// they are intentionally not part of the public library API.

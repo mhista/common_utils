@@ -1,5 +1,5 @@
 import 'package:common_utils2/common_utils2.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,4 +59,4 @@ class ExampleScreen extends StatelessWidget {
       ),
     );
   }
-}
+}

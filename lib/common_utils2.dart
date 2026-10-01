@@ -64,6 +64,11 @@ export 'src/services/location_service.dart';
 /// Supports different log levels (debug, info, warning, error)
 export 'src/services/logger_service.dart';
 
+/// Talker types needed to configure LoggerService / routing without adding
+/// talker packages to your own pubspec.
+export 'package:talker_flutter/talker_flutter.dart'
+    show LogLevel, TalkerRouteObserver, TalkerScreen;
+
 /// Network connectivity service for monitoring internet connection status
 /// Provides real-time connectivity updates and connection type detection
 export 'src/services/network_connectivity.dart';
@@ -219,7 +224,7 @@ export 'src/utils/maths_utils.dart';
 /// Reusable patterns to ensure consistent validation across the app
 export 'src/utils/regex_patterns.dart';
 
-// NEW: Initializer (developers need this)
+/// One-call setup for notifications + downloads, returns BlocProviders
 export 'src/common_utils_initializer.dart';
 
 // NEW: Feature modules (developers can import specific modules)
@@ -229,23 +234,5 @@ export 'src/medias/media/media.dart';
 export 'src/medias/image/image.dart';
 
 // ============================================================================
-// USAGE NOTES
-// ============================================================================
-// 
-// To use this package in your project:
-// 
-// 1. Import the entire package:
-//    import 'package:your_package_name/your_package_name.dart';
-//
-// 2. Or import specific utilities:
-//    import 'package:your_package_name/your_package_name.dart' show ResponsiveHelper, HiveStorageService;
-//
-// 3. Initialize services in main.dart:
-//    await HiveStorageService.init();
-//    await NetworkConnectivity.instance.initialize();
-//
-// 4. Access singletons:
-//    final storage = HiveStorageService.instance;
-//    final logger = LoggerService.instance;
-//
+// USAGE: see README.md (Quick start) and UPGRADING.md for 3.x → 4.0 changes.
 // ============================================================================

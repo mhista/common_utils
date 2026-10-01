@@ -12,6 +12,9 @@ class NotificationChannelDef {
   final bool playSound;
   final bool enableVibration;
 
+  /// Whether notifications on this channel contribute to the launcher badge.
+  final bool showBadge;
+
   const NotificationChannelDef({
     required this.id,
     required this.name,
@@ -19,6 +22,7 @@ class NotificationChannelDef {
     this.importance = Importance.high,
     this.playSound = true,
     this.enableVibration = true,
+    this.showBadge = true,
   });
 }
 

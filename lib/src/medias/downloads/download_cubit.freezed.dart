@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'download_cubit.dart';
@@ -9,13 +9,13 @@ part of 'download_cubit.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DownloadState implements DiagnosticableTreeMixin {
 
- Map<String, DownloadItem> get downloads; List<String> get queue;// IDs in queue order
- int get maxConcurrent;
+ Map<String, DownloadItem> get downloads; List<String> get queue; int get maxConcurrent;
 /// Create a copy of DownloadState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,23 +25,29 @@ $DownloadStateCopyWith<DownloadState> get copyWith => _$DownloadStateCopyWithImp
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  final _this = this as DownloadState;
   properties
     ..add(DiagnosticsProperty('type', 'DownloadState'))
-    ..add(DiagnosticsProperty('downloads', downloads))..add(DiagnosticsProperty('queue', queue))..add(DiagnosticsProperty('maxConcurrent', maxConcurrent));
+    ..add(DiagnosticsProperty('downloads', _this.downloads))..add(DiagnosticsProperty('queue', _this.queue))..add(DiagnosticsProperty('maxConcurrent', _this.maxConcurrent));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadState&&const DeepCollectionEquality().equals(other.downloads, downloads)&&const DeepCollectionEquality().equals(other.queue, queue)&&(identical(other.maxConcurrent, maxConcurrent) || other.maxConcurrent == maxConcurrent));
+  final _this = this as DownloadState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadState&&const DeepCollectionEquality().equals(other.downloads, _this.downloads)&&const DeepCollectionEquality().equals(other.queue, _this.queue)&&(identical(other.maxConcurrent, _this.maxConcurrent) || other.maxConcurrent == _this.maxConcurrent));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(downloads),const DeepCollectionEquality().hash(queue),maxConcurrent);
+int get hashCode {
+  final _this = this as DownloadState;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.downloads),const DeepCollectionEquality().hash(_this.queue),_this.maxConcurrent);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'DownloadState(downloads: $downloads, queue: $queue, maxConcurrent: $maxConcurrent)';
+  final _this = this as DownloadState;
+  return 'DownloadState(downloads: ${_this.downloads}, queue: ${_this.queue}, maxConcurrent: ${_this.maxConcurrent})';
 }
 
 
@@ -70,7 +76,7 @@ class _$DownloadStateCopyWithImpl<$Res>
 /// Create a copy of DownloadState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? downloads = null,Object? queue = null,Object? maxConcurrent = null,}) {
-  return _then(_self.copyWith(
+  return _then(DownloadState(
 downloads: null == downloads ? _self.downloads : downloads // ignore: cast_nullable_to_non_nullable
 as Map<String, DownloadItem>,queue: null == queue ? _self.queue : queue // ignore: cast_nullable_to_non_nullable
 as List<String>,maxConcurrent: null == maxConcurrent ? _self.maxConcurrent : maxConcurrent // ignore: cast_nullable_to_non_nullable
@@ -215,7 +221,7 @@ return $default(_that.downloads,_that.queue,_that.maxConcurrent);case _:
 
 
 class _DownloadState extends DownloadState with DiagnosticableTreeMixin {
-  const _DownloadState({final  Map<String, DownloadItem> downloads = const {}, final  List<String> queue = const [], this.maxConcurrent = 3}): _downloads = downloads,_queue = queue,super._();
+  const _DownloadState({ Map<String, DownloadItem> downloads = const {},  List<String> queue = const [], this.maxConcurrent = 3}): _downloads = downloads,_queue = queue,super._();
   
 
  final  Map<String, DownloadItem> _downloads;
@@ -232,7 +238,6 @@ class _DownloadState extends DownloadState with DiagnosticableTreeMixin {
   return EqualUnmodifiableListView(_queue);
 }
 
-// IDs in queue order
 @override@JsonKey() final  int maxConcurrent;
 
 /// Create a copy of DownloadState
@@ -244,23 +249,25 @@ _$DownloadStateCopyWith<_DownloadState> get copyWith => __$DownloadStateCopyWith
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
+    properties
     ..add(DiagnosticsProperty('type', 'DownloadState'))
     ..add(DiagnosticsProperty('downloads', downloads))..add(DiagnosticsProperty('queue', queue))..add(DiagnosticsProperty('maxConcurrent', maxConcurrent));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadState&&const DeepCollectionEquality().equals(other._downloads, _downloads)&&const DeepCollectionEquality().equals(other._queue, _queue)&&(identical(other.maxConcurrent, maxConcurrent) || other.maxConcurrent == maxConcurrent));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadState&&const DeepCollectionEquality().equals(other.downloads, _downloads)&&const DeepCollectionEquality().equals(other.queue, _queue)&&(identical(other.maxConcurrent, maxConcurrent) || other.maxConcurrent == maxConcurrent));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_downloads),const DeepCollectionEquality().hash(_queue),maxConcurrent);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_downloads),const DeepCollectionEquality().hash(_queue),maxConcurrent);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'DownloadState(downloads: $downloads, queue: $queue, maxConcurrent: $maxConcurrent)';
+    return 'DownloadState(downloads: $downloads, queue: $queue, maxConcurrent: $maxConcurrent)';
 }
 
 

@@ -6,11 +6,34 @@ import '../notification_payload.dart';
 import 'notification_entry.dart';
 import 'notification_state.dart';
 
+/// Persistent in-app notification inbox (drives badges + notification centre).
+///
+/// Scopes: multi-account apps should keep a separate inbox per account.
+/// Pass [scope] (e.g. the active account ID) or call [switchScope] when the
+/// user switches accounts — entries are stored under a scope-specific key.
+/// A null scope uses the 3.x storage key, so existing data is preserved.
 class NotificationCubit extends Cubit<NotificationState> {
-  NotificationCubit() : super(const NotificationState());
+  NotificationCubit({String? scope, int maxEntries = 100})
+    : _scope = scope,
+      _maxEntries = maxEntries,
+      super(const NotificationState());
 
-  static const _prefsKey = 'notification_entries_v1';
-  static const _maxEntries = 100;
+  static const _basePrefsKey = 'notification_entries_v1';
+  final int _maxEntries;
+  String? _scope;
+
+  /// Current storage scope (null = device-wide / legacy).
+  String? get scope => _scope;
+
+  String get _prefsKey =>
+      _scope == null ? _basePrefsKey : '${_basePrefsKey}_$_scope';
+
+  /// Switch the inbox to another scope (e.g. account switch) and load it.
+  Future<void> switchScope(String? scope) async {
+    if (scope == _scope) return;
+    _scope = scope;
+    await initialize();
+  }
 
   // ── Init ──────────────────────────────────────────────────────────────────
 
@@ -58,6 +81,15 @@ class NotificationCubit extends Cubit<NotificationState> {
     final updated = state.entries.map((e) {
       return e.id == id ? e.copyWith(isRead: true) : e;
     }).toList();
+    emit(state.copyWith(entries: updated));
+    await _persist(updated);
+  }
+
+  /// Mark every entry of one channel/category as read.
+  Future<void> markChannelRead(String channelId) async {
+    final updated = state.entries
+        .map((e) => e.channelId == channelId ? e.copyWith(isRead: true) : e)
+        .toList();
     emit(state.copyWith(entries: updated));
     await _persist(updated);
   }
@@ -114,6 +146,7 @@ class NotificationCubit extends Cubit<NotificationState> {
   // ── Persistence ───────────────────────────────────────────────────────────
 
   Future<void> _persist(List<NotificationEntry> entries) async {
+    if (isClosed) return;
     try {
       final prefs = await SharedPreferences.getInstance();
       final encoded = jsonEncode(entries.map((e) => e.toJson()).toList());

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'notification_state.dart';
@@ -9,6 +9,7 @@ part of 'notification_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -25,16 +26,21 @@ $NotificationStateCopyWith<NotificationState> get copyWith => _$NotificationStat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationState&&const DeepCollectionEquality().equals(other.entries, entries)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+  final _this = this as NotificationState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationState&&const DeepCollectionEquality().equals(other.entries, _this.entries)&&(identical(other.isLoading, _this.isLoading) || other.isLoading == _this.isLoading)&&(identical(other.error, _this.error) || other.error == _this.error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(entries),isLoading,error);
+int get hashCode {
+  final _this = this as NotificationState;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.entries),_this.isLoading,_this.error);
+}
 
 @override
 String toString() {
-  return 'NotificationState(entries: $entries, isLoading: $isLoading, error: $error)';
+  final _this = this as NotificationState;
+  return 'NotificationState(entries: ${_this.entries}, isLoading: ${_this.isLoading}, error: ${_this.error})';
 }
 
 
@@ -63,7 +69,7 @@ class _$NotificationStateCopyWithImpl<$Res>
 /// Create a copy of NotificationState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? entries = null,Object? isLoading = null,Object? error = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(NotificationState(
 entries: null == entries ? _self.entries : entries // ignore: cast_nullable_to_non_nullable
 as List<NotificationEntry>,isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,error: freezed == error ? _self.error : error // ignore: cast_nullable_to_non_nullable
@@ -208,7 +214,7 @@ return $default(_that.entries,_that.isLoading,_that.error);case _:
 
 
 class _NotificationState extends NotificationState {
-  const _NotificationState({final  List<NotificationEntry> entries = const [], this.isLoading = false, this.error}): _entries = entries,super._();
+  const _NotificationState({ List<NotificationEntry> entries = const [], this.isLoading = false, this.error}): _entries = entries,super._();
   
 
  final  List<NotificationEntry> _entries;
@@ -231,16 +237,18 @@ _$NotificationStateCopyWith<_NotificationState> get copyWith => __$NotificationS
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationState&&const DeepCollectionEquality().equals(other._entries, _entries)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationState&&const DeepCollectionEquality().equals(other.entries, _entries)&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.error, error) || other.error == error));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_entries),isLoading,error);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_entries),isLoading,error);
+}
 
 @override
 String toString() {
-  return 'NotificationState(entries: $entries, isLoading: $isLoading, error: $error)';
+    return 'NotificationState(entries: $entries, isLoading: $isLoading, error: $error)';
 }
 
 

@@ -1,5 +1,5 @@
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../download_cubit.dart';
 import '../download_enum_values.dart';
@@ -109,8 +109,8 @@ class DownloadProgressWidget extends StatelessWidget {
 
     return Chip(
       label: Text(data.$1, style: const TextStyle(fontSize: 12)),
-      backgroundColor: data.$2.withOpacity(0.2),
+      backgroundColor: data.$2.withValues(alpha: 0.2),
       labelStyle: TextStyle(color: data.$2),
     );
   }
-}
+}

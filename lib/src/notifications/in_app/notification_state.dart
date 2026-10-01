@@ -22,4 +22,21 @@ abstract class NotificationState with _$NotificationState {
 
   List<NotificationEntry> get unread =>
       entries.where((e) => !e.isRead).toList();
-}
+
+  /// Entries for one channel/category (e.g. 'orders').
+  List<NotificationEntry> entriesFor(String channelId) =>
+      entries.where((e) => e.channelId == channelId).toList();
+
+  /// Unread count for one channel/category.
+  int unreadCountFor(String channelId) =>
+      entries.where((e) => !e.isRead && e.channelId == channelId).length;
+
+  /// Unread count per channel — handy for category tabs.
+  Map<String, int> get unreadByChannel {
+    final map = <String, int>{};
+    for (final e in entries) {
+      if (!e.isRead) map[e.channelId] = (map[e.channelId] ?? 0) + 1;
+    }
+    return map;
+  }
+}

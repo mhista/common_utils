@@ -1,0 +1,28 @@
+# .pubignore REPLACES .gitignore for publishing, so the git rules are repeated here.
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+*.iml
+*.ipr
+*.iws
+.idea/
+/pubspec.lock
+**/doc/api/
+.dart_tool/
+.flutter-plugins-dependencies
+/build/
+/coverage/
+
+# Private notes / work-in-progress (universal video player) - not for pub.dev
+m.txt
+/MIGRATION_GUIDE.md
+lib/README.md
+lib/MIGRATION_GUIDE.md
+devtools_options.yaml

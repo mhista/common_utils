@@ -1,39 +1,72 @@
-import 'package:common_utils2/common_utils2.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'medias/downloads/download_cubit.dart';
+import 'notifications/common_notification_service.dart';
+import 'notifications/in_app/notification_cubit.dart';
+import 'notifications/notification_config.dart';
 
+/// One-call setup for the stateful features of common_utils2.
+///
+/// ```dart
+/// final utils = await CommonUtilsInitializer.initialize(
+///   notificationConfig: NotificationConfig.withDefaults(...),
+///   notificationScope: lastActiveAccountId, // optional, per-account inbox
+/// );
+/// runApp(MultiBlocProvider(providers: utils.providers, child: const App()));
+/// ```
 class CommonUtilsInitializer {
   final NotificationCubit? notificationCubit;
   final DownloadCubit? downloadCubit;
+  final StreamSubscription<dynamic>? _inboxPipe;
 
-  CommonUtilsInitializer._({this.notificationCubit, this.downloadCubit});
+  CommonUtilsInitializer._({
+    this.notificationCubit,
+    this.downloadCubit,
+    StreamSubscription<dynamic>? inboxPipe,
+  }) : _inboxPipe = inboxPipe;
 
   /// Initialize all common_utils features.
   ///
-  /// [notificationConfig] - Required for push notifications
-  /// [enableDownloads] - Enable download manager (default: true)
-  /// [enableNotifications] - Enable in-app notifications (default: true)
+  /// * [notificationConfig] — required for push notifications. When null, only
+  ///   the in-app inbox ([NotificationCubit]) is created.
+  /// * [enableDownloads] — create the download manager (default: true).
+  /// * [enableNotifications] — create the in-app inbox (default: true).
+  /// * [notificationScope] — storage scope for the in-app inbox (e.g. the
+  ///   active account ID). Change later with `notificationCubit.switchScope`.
+  /// * [pipeForegroundToInbox] — when true (default) every foreground push is
+  ///   also saved to the in-app inbox so badges and the notification centre
+  ///   stay in sync without extra wiring.
   static Future<CommonUtilsInitializer> initialize({
     NotificationConfig? notificationConfig,
     bool enableDownloads = true,
     bool enableNotifications = true,
+    String? notificationScope,
+    bool pipeForegroundToInbox = true,
   }) async {
     NotificationCubit? notificationCubit;
     DownloadCubit? downloadCubit;
+    StreamSubscription<dynamic>? pipe;
 
-    // Initialize notifications
     if (enableNotifications) {
       if (notificationConfig != null) {
         await CommonNotificationService.instance.initialize(notificationConfig);
       }
 
-      notificationCubit = NotificationCubit();
+      notificationCubit = NotificationCubit(scope: notificationScope);
       await notificationCubit.initialize();
+
+      if (pipeForegroundToInbox &&
+          CommonNotificationService.instance.isInitialized) {
+        final cubit = notificationCubit;
+        pipe = CommonNotificationService.instance.messages.listen(
+          cubit.addFromPayload,
+        );
+      }
     }
 
-    // Initialize downloads
     if (enableDownloads) {
       downloadCubit = DownloadCubit();
     }
@@ -41,10 +74,11 @@ class CommonUtilsInitializer {
     return CommonUtilsInitializer._(
       notificationCubit: notificationCubit,
       downloadCubit: downloadCubit,
+      inboxPipe: pipe,
     );
   }
 
-  /// Get list of common_utils providers to merge with your app providers
+  /// Providers to merge with your app's providers.
   List<BlocProvider> get providers {
     final list = <BlocProvider>[];
 
@@ -61,9 +95,12 @@ class CommonUtilsInitializer {
     return list;
   }
 
-  /// Original method - still works
+  /// Wraps [child] in a [MultiBlocProvider] with [providers].
   Widget provideCubits({required Widget child}) {
     if (providers.isEmpty) return child;
     return MultiBlocProvider(providers: providers, child: child);
   }
+
+  /// Stop piping foreground messages into the inbox.
+  Future<void> dispose() async => _inboxPipe?.cancel();
 }

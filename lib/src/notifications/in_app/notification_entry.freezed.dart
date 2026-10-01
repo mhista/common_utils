@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'notification_entry.dart';
@@ -9,6 +9,7 @@ part of 'notification_entry.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 
@@ -28,16 +29,21 @@ $NotificationEntryCopyWith<NotificationEntry> get copyWith => _$NotificationEntr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.type, type) || other.type == type)&&(identical(other.channelId, channelId) || other.channelId == channelId)&&const DeepCollectionEquality().equals(other.data, data)&&(identical(other.receivedAt, receivedAt) || other.receivedAt == receivedAt)&&(identical(other.isRead, isRead) || other.isRead == isRead));
+  final _this = this as NotificationEntry;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NotificationEntry&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.title, _this.title) || other.title == _this.title)&&(identical(other.body, _this.body) || other.body == _this.body)&&(identical(other.imageUrl, _this.imageUrl) || other.imageUrl == _this.imageUrl)&&(identical(other.deepLink, _this.deepLink) || other.deepLink == _this.deepLink)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.channelId, _this.channelId) || other.channelId == _this.channelId)&&const DeepCollectionEquality().equals(other.data, _this.data)&&(identical(other.receivedAt, _this.receivedAt) || other.receivedAt == _this.receivedAt)&&(identical(other.isRead, _this.isRead) || other.isRead == _this.isRead));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,body,imageUrl,deepLink,type,channelId,const DeepCollectionEquality().hash(data),receivedAt,isRead);
+int get hashCode {
+  final _this = this as NotificationEntry;
+  return Object.hash(runtimeType,_this.id,_this.title,_this.body,_this.imageUrl,_this.deepLink,_this.type,_this.channelId,const DeepCollectionEquality().hash(_this.data),_this.receivedAt,_this.isRead);
+}
 
 @override
 String toString() {
-  return 'NotificationEntry(id: $id, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, type: $type, channelId: $channelId, data: $data, receivedAt: $receivedAt, isRead: $isRead)';
+  final _this = this as NotificationEntry;
+  return 'NotificationEntry(id: ${_this.id}, title: ${_this.title}, body: ${_this.body}, imageUrl: ${_this.imageUrl}, deepLink: ${_this.deepLink}, type: ${_this.type}, channelId: ${_this.channelId}, data: ${_this.data}, receivedAt: ${_this.receivedAt}, isRead: ${_this.isRead})';
 }
 
 
@@ -66,7 +72,7 @@ class _$NotificationEntryCopyWithImpl<$Res>
 /// Create a copy of NotificationEntry
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? title = freezed,Object? body = freezed,Object? imageUrl = freezed,Object? deepLink = freezed,Object? type = null,Object? channelId = null,Object? data = null,Object? receivedAt = null,Object? isRead = null,}) {
-  return _then(_self.copyWith(
+  return _then(NotificationEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,title: freezed == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String?,body: freezed == body ? _self.body : body // ignore: cast_nullable_to_non_nullable
@@ -218,7 +224,7 @@ return $default(_that.id,_that.title,_that.body,_that.imageUrl,_that.deepLink,_t
 @JsonSerializable()
 
 class _NotificationEntry extends NotificationEntry {
-  const _NotificationEntry({required this.id, this.title, this.body, this.imageUrl, this.deepLink, this.type = 'general', this.channelId = 'general', final  Map<String, dynamic> data = const {}, required this.receivedAt, this.isRead = false}): _data = data,super._();
+  const _NotificationEntry({required this.id, this.title, this.body, this.imageUrl, this.deepLink, this.type = 'general', this.channelId = 'general',  Map<String, dynamic> data = const {}, required this.receivedAt, this.isRead = false}): _data = data,super._();
   factory _NotificationEntry.fromJson(Map<String, dynamic> json) => _$NotificationEntryFromJson(json);
 
 @override final  String id;
@@ -251,16 +257,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.type, type) || other.type == type)&&(identical(other.channelId, channelId) || other.channelId == channelId)&&const DeepCollectionEquality().equals(other._data, _data)&&(identical(other.receivedAt, receivedAt) || other.receivedAt == receivedAt)&&(identical(other.isRead, isRead) || other.isRead == isRead));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NotificationEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.title, title) || other.title == title)&&(identical(other.body, body) || other.body == body)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.deepLink, deepLink) || other.deepLink == deepLink)&&(identical(other.type, type) || other.type == type)&&(identical(other.channelId, channelId) || other.channelId == channelId)&&const DeepCollectionEquality().equals(other.data, _data)&&(identical(other.receivedAt, receivedAt) || other.receivedAt == receivedAt)&&(identical(other.isRead, isRead) || other.isRead == isRead));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,title,body,imageUrl,deepLink,type,channelId,const DeepCollectionEquality().hash(_data),receivedAt,isRead);
+int get hashCode {
+    return Object.hash(runtimeType,id,title,body,imageUrl,deepLink,type,channelId,const DeepCollectionEquality().hash(_data),receivedAt,isRead);
+}
 
 @override
 String toString() {
-  return 'NotificationEntry(id: $id, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, type: $type, channelId: $channelId, data: $data, receivedAt: $receivedAt, isRead: $isRead)';
+    return 'NotificationEntry(id: $id, title: $title, body: $body, imageUrl: $imageUrl, deepLink: $deepLink, type: $type, channelId: $channelId, data: $data, receivedAt: $receivedAt, isRead: $isRead)';
 }
 
 

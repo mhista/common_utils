@@ -1,6 +1,6 @@
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CachedImageWidget extends StatelessWidget {
   final String imageUrl;
@@ -29,4 +29,4 @@ class CachedImageWidget extends StatelessWidget {
       maxWidthDiskCache: 1200,
     );
   }
-}
+}

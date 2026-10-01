@@ -1,10 +1,7 @@
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FILE: notification_config.dart
-// ─────────────────────────────────────────────────────────────────────────────
-
-import 'package:common_utils2/common_utils2.dart';
-
+import 'handlers/i_notification_handler.dart';
+import 'notification_channel.dart';
+import 'notification_payload.dart';
 
 /// Configuration object passed once at initialization.
 /// Create one per app — this is the primary customization surface.
@@ -68,6 +65,20 @@ class NotificationConfig {
   /// For user-specific topics (e.g. 'user_123'), subscribe after login instead.
   final List<String> initialTopics;
 
+  /// When true (default, 3.x behaviour) the OS permission prompt is shown
+  /// during [CommonNotificationService.initialize].
+  ///
+  /// Set to false to ask later — e.g. after an onboarding screen explains
+  /// why notifications matter — by calling
+  /// `CommonNotificationService.instance.requestPermission()`.
+  /// Asking in context roughly doubles opt-in rates.
+  final bool requestPermissionOnInit;
+
+  /// Storage scope for [NotificationPreferences] at startup (e.g. the last
+  /// active account ID). Can be changed later with
+  /// `CommonNotificationService.instance.preferences.switchScope(id)`.
+  final String? preferencesScope;
+
   const NotificationConfig({
     this.androidIcon = '@mipmap/ic_launcher',
     this.iosRequestAlert = true,
@@ -79,6 +90,8 @@ class NotificationConfig {
     this.onNotificationTap,
     this.onForegroundMessage,
     this.initialTopics = const [],
+    this.requestPermissionOnInit = true,
+    this.preferencesScope,
   });
 
   /// Creates a config that includes all [AppNotificationChannel.all] channels
@@ -94,6 +107,8 @@ class NotificationConfig {
     bool iosRequestAlert = true,
     bool iosRequestBadge = true,
     bool iosRequestSound = true,
+    bool requestPermissionOnInit = true,
+    String? preferencesScope,
   }) {
     return NotificationConfig(
       androidIcon: androidIcon,
@@ -106,7 +121,17 @@ class NotificationConfig {
       onNotificationTap: onNotificationTap,
       onForegroundMessage: onForegroundMessage,
       initialTopics: initialTopics,
+      requestPermissionOnInit: requestPermissionOnInit,
+      preferencesScope: preferencesScope,
     );
+  }
+
+  /// Looks up a channel definition by ID (null if the app never declared it).
+  NotificationChannelDef? channelById(String id) {
+    for (final c in channels) {
+      if (c.id == id) return c;
+    }
+    return null;
   }
 }
 

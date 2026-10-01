@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'lazy_video_cubit.dart';
@@ -9,6 +9,7 @@ part of 'lazy_video_cubit.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -28,23 +29,29 @@ $LazyVideoStateCopyWith<LazyVideoState> get copyWith => _$LazyVideoStateCopyWith
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+  final _this = this as LazyVideoState;
   properties
     ..add(DiagnosticsProperty('type', 'LazyVideoState'))
-    ..add(DiagnosticsProperty('controllers', controllers))..add(DiagnosticsProperty('visibleVideos', visibleVideos))..add(DiagnosticsProperty('playingVideos', playingVideos))..add(DiagnosticsProperty('isMuted', isMuted));
+    ..add(DiagnosticsProperty('controllers', _this.controllers))..add(DiagnosticsProperty('visibleVideos', _this.visibleVideos))..add(DiagnosticsProperty('playingVideos', _this.playingVideos))..add(DiagnosticsProperty('isMuted', _this.isMuted));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is LazyVideoState&&const DeepCollectionEquality().equals(other.controllers, controllers)&&const DeepCollectionEquality().equals(other.visibleVideos, visibleVideos)&&const DeepCollectionEquality().equals(other.playingVideos, playingVideos)&&(identical(other.isMuted, isMuted) || other.isMuted == isMuted));
+  final _this = this as LazyVideoState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is LazyVideoState&&const DeepCollectionEquality().equals(other.controllers, _this.controllers)&&const DeepCollectionEquality().equals(other.visibleVideos, _this.visibleVideos)&&const DeepCollectionEquality().equals(other.playingVideos, _this.playingVideos)&&(identical(other.isMuted, _this.isMuted) || other.isMuted == _this.isMuted));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(controllers),const DeepCollectionEquality().hash(visibleVideos),const DeepCollectionEquality().hash(playingVideos),isMuted);
+int get hashCode {
+  final _this = this as LazyVideoState;
+  return Object.hash(runtimeType,const DeepCollectionEquality().hash(_this.controllers),const DeepCollectionEquality().hash(_this.visibleVideos),const DeepCollectionEquality().hash(_this.playingVideos),_this.isMuted);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'LazyVideoState(controllers: $controllers, visibleVideos: $visibleVideos, playingVideos: $playingVideos, isMuted: $isMuted)';
+  final _this = this as LazyVideoState;
+  return 'LazyVideoState(controllers: ${_this.controllers}, visibleVideos: ${_this.visibleVideos}, playingVideos: ${_this.playingVideos}, isMuted: ${_this.isMuted})';
 }
 
 
@@ -73,7 +80,7 @@ class _$LazyVideoStateCopyWithImpl<$Res>
 /// Create a copy of LazyVideoState
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? controllers = null,Object? visibleVideos = null,Object? playingVideos = null,Object? isMuted = null,}) {
-  return _then(_self.copyWith(
+  return _then(LazyVideoState(
 controllers: null == controllers ? _self.controllers : controllers // ignore: cast_nullable_to_non_nullable
 as Map<String, VideoPlayerController>,visibleVideos: null == visibleVideos ? _self.visibleVideos : visibleVideos // ignore: cast_nullable_to_non_nullable
 as Set<String>,playingVideos: null == playingVideos ? _self.playingVideos : playingVideos // ignore: cast_nullable_to_non_nullable
@@ -219,7 +226,7 @@ return $default(_that.controllers,_that.visibleVideos,_that.playingVideos,_that.
 
 
 class _LazyVideoState with DiagnosticableTreeMixin implements LazyVideoState {
-  const _LazyVideoState({final  Map<String, VideoPlayerController> controllers = const {}, final  Set<String> visibleVideos = const {}, final  Set<String> playingVideos = const {}, this.isMuted = false}): _controllers = controllers,_visibleVideos = visibleVideos,_playingVideos = playingVideos;
+  const _LazyVideoState({ Map<String, VideoPlayerController> controllers = const {},  Set<String> visibleVideos = const {},  Set<String> playingVideos = const {}, this.isMuted = false}): _controllers = controllers,_visibleVideos = visibleVideos,_playingVideos = playingVideos;
   
 
 /// Map of video ID to controller
@@ -261,23 +268,25 @@ _$LazyVideoStateCopyWith<_LazyVideoState> get copyWith => __$LazyVideoStateCopyW
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
+    properties
     ..add(DiagnosticsProperty('type', 'LazyVideoState'))
     ..add(DiagnosticsProperty('controllers', controllers))..add(DiagnosticsProperty('visibleVideos', visibleVideos))..add(DiagnosticsProperty('playingVideos', playingVideos))..add(DiagnosticsProperty('isMuted', isMuted));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _LazyVideoState&&const DeepCollectionEquality().equals(other._controllers, _controllers)&&const DeepCollectionEquality().equals(other._visibleVideos, _visibleVideos)&&const DeepCollectionEquality().equals(other._playingVideos, _playingVideos)&&(identical(other.isMuted, isMuted) || other.isMuted == isMuted));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _LazyVideoState&&const DeepCollectionEquality().equals(other.controllers, _controllers)&&const DeepCollectionEquality().equals(other.visibleVideos, _visibleVideos)&&const DeepCollectionEquality().equals(other.playingVideos, _playingVideos)&&(identical(other.isMuted, isMuted) || other.isMuted == isMuted));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_controllers),const DeepCollectionEquality().hash(_visibleVideos),const DeepCollectionEquality().hash(_playingVideos),isMuted);
+int get hashCode {
+    return Object.hash(runtimeType,const DeepCollectionEquality().hash(_controllers),const DeepCollectionEquality().hash(_visibleVideos),const DeepCollectionEquality().hash(_playingVideos),isMuted);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'LazyVideoState(controllers: $controllers, visibleVideos: $visibleVideos, playingVideos: $playingVideos, isMuted: $isMuted)';
+    return 'LazyVideoState(controllers: $controllers, visibleVideos: $visibleVideos, playingVideos: $playingVideos, isMuted: $isMuted)';
 }
 
 

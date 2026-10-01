@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 
 /// Bank Utilities
 /// Utilities for bank operations using Paystack API
@@ -382,52 +381,5 @@ class BankUtilsException implements Exception {
   String toString() => 'BankUtilsException: $message';
 }
 
-/// Usage Examples
-void bankUtilsExamples() async {
-  // Initialize
-  BankUtils.init(paystackSecretKey: 'sk_test_your_secret_key');
-
-  // Get Nigerian banks
-  final banksResult = await BankUtils.getNigerianBanks();
-  if (banksResult.success) {
-    debugPrint('Found ${banksResult.banks.length} banks');
-    for (final bank in banksResult.banks) {
-      debugPrint('${bank.name} - ${bank.code}');
-    }
-  }
-
-  // Resolve account number
-  final resolution = await BankUtils.resolveAccountNumber(
-    accountNumber: '0123456789',
-    bankCode: '058', // GTBank code
-  );
-
-  if (resolution.success) {
-    debugPrint('Account Name: ${resolution.accountName}');
-  }
-
-  // Validate account
-  final validation = await BankUtils.validateAccount(
-    accountNumber: '0123456789',
-    bankCode: '058',
-  );
-
-  if (validation.isValid) {
-    debugPrint('Valid account: ${validation.accountName}');
-  }
-
-  // Search banks
-  final _ = await BankUtils.searchBanks(
-    query: 'GTBank',
-    country: 'nigeria',
-  );
-
-  // Get bank by code
-  final bank = await BankUtils.getBankByCode(code: '058');
-  debugPrint(bank?.name);
-
-  // Get supported countries
-  for (final country in BankUtils.supportedCountries) {
-    debugPrint('${country.name} (${country.currency})');
-  }
-}
+// Usage examples live in the package README and example/ app —
+// they are intentionally not part of the public library API.

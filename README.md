@@ -1,247 +1,434 @@
-# Common Utils2
+# common_utils2
 
 [![pub package](https://img.shields.io/pub/v/common_utils2.svg)](https://pub.dev/packages/common_utils2)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A comprehensive, production-ready Flutter utilities package designed to accelerate development by providing a vast collection of essential tools, services, and widgets. From advanced media management and push notifications to robust storage solutions and internationalization—`common_utils2` covers it all.
+A production-focused Flutter utilities package: **push / local / in-app notifications**, **storage** (Hive CE, secure storage, shared preferences), **connectivity**, **logging**, a type-safe **`Result`**, **countries & dial codes**, **currency**, **validators**, **media & files**, **location**, and a set of everyday extensions.
+
+> **Upgrading from 3.x?** Read [UPGRADING.md](UPGRADING.md) — 4.0.0 needs Flutter 3.47 / Dart 3.13 and has a few small API changes.
 
 ---
 
-## ✨ Features at a Glance
+## Contents
 
-### 🎥 Advanced Media & Video
-- **Video Preloading**: Smart viewport-aware preloading (ahead/behind) for TikTok-style feeds.
-- **Lazy Loading**: Automatic initialization/disposal of video controllers to optimize memory.
-- **Mixed Media**: Seamlessly handle feeds containing images, videos, and documents.
-- **Image Preloading**: Efficient pre-caching of network images for smooth scrolling.
-- **Pagination**: Built-in Cubit-based pagination for endless scrolling content.
-
-### 🔔 Complete Notification System
-- **FCM & Local**: Unified API for Firebase Cloud Messaging and local notifications.
-- **In-App Overlays**: Elegant slide-down notification toasts that work over any screen.
-- **Notification Centre**: Persistent history tracking with read/unread states.
-- **Topic Management**: Simplified subscription/unsubscription logic.
-
-### 📥 Robust Download Manager
-- **Concurrent Downloads**: Intelligent queue system with configurable concurrency.
-- **Lifecycle Control**: Pause, resume, cancel, and retry downloads.
-- **Progress Tracking**: Real-time progress updates, speed, and ETA calculation.
-
-### 💾 Multi-Engine Storage
-- **Hive Storage**: High-performance, user-isolated persistent storage.
-- **Secure Storage**: AES-256 encrypted storage for tokens and sensitive credentials.
-- **Shared Preferences**: Lightweight key-value persistence for simple settings.
-
-### 🌐 Network & Location
-- **Connectivity Monitoring**: Real-time internet status, connection type (WiFi, Mobile), and quality estimation (Ping/Latency).
-- **Location Services**: High-level API for GPS coordinates, distance calculations, geocoding (Address ↔ Coordinates), and geofencing.
-- **HTTP Client**: Dio-based client with built-in interceptors for automatic token management and error handling.
-
-### 🛠️ Core Utilities & Performance
-- **Debouncer & Throttler**: Multiple variants (Basic, Typed, Async) and `RateLimiter` for performance optimization.
-- **Encryption**: AES, RSA, SHA-256, MD5, and secure password hashing.
-- **Maths & Color**: Advanced mathematical operations and color manipulation (Hex, brightness, contrast).
-- **Result Type**: Functional error handling for cleaner, type-safe code.
-
-### 📱 Responsive & Device Utils
-- **Breakpoint System**: Mobile, Tablet, Desktop, and Ultrawide layout helpers.
-- **Responsive Values**: Fluid UI scaling with `valueWhen`, `responsiveValue`, and `fontSize`.
-- **System Controls**: Easy control over status bar, orientation, and device information.
-
-### 🇳🇬 Nigerian & International Features
-- **Banking**: NUBAN validation, bank discovery for Nigeria, Ghana, SA, and Kenya.
-- **Internationalization**: 194+ countries data, state/city support (offline & live API).
-- **Validators**: Robust form validation including Nigerian-specific (BVN, NIN, Phone).
+1. [Requirements & installation](#1-requirements--installation)
+2. [Quick start](#2-quick-start)
+3. [Module map — what to use when](#3-module-map--what-to-use-when)
+4. [Notifications](#4-notifications)
+5. [Result & error handling](#5-result--error-handling)
+6. [Storage](#6-storage)
+7. [Connectivity](#7-connectivity)
+8. [Logging](#8-logging)
+9. [Countries, dial codes & currency](#9-countries-dial-codes--currency)
+10. [Validators & extensions](#10-validators--extensions)
+11. [Media, images & files](#11-media-images--files)
+12. [Location](#12-location)
+13. [Performance helpers](#13-performance-helpers)
+14. [Name collisions to know about](#14-name-collisions-to-know-about)
+15. [Platform setup checklist](#15-platform-setup-checklist)
 
 ---
 
-## 📦 Installation
+## 1. Requirements & installation
 
-Add the package to your `pubspec.yaml`:
+| | Minimum |
+|---|---|
+| Flutter | **3.47.0** |
+| Dart | **3.13.0** |
+| Android | minSdk **24**, compileSdk **37** (required by `flutter_secure_storage` 11 / `permission_handler` 13) |
+| iOS | **13.0** |
 
 ```yaml
 dependencies:
-  common_utils2: ^2.0.0
+  common_utils2: ^4.0.0
+  material_ui: ^1.4.0   # Flutter 3.47+: Material lives here now
 ```
 
----
-
-## 🚀 Quick Start: Initialization
-
-The easiest way to set up the package is using the `CommonUtilsInitializer`.
+The package's widgets use `package:material_ui/material_ui.dart`. New apps should import `material_ui` instead of `package:flutter/material.dart` (existing apps can run `dart fix --apply --code=migrate_design_widgets`).
 
 ```dart
 import 'package:common_utils2/common_utils2.dart';
+```
 
-void main() async {
+---
+
+## 2. Quick start
+
+Initialise the services you use **once**, in `main()`, before `runApp`. Everything is optional — only call what you need.
+
+```dart
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // 1. Initialize Core Services (Optional but recommended)
-  await HiveStorageService.init();
-  await SecureStorageService.init();
-  await LoggerService.init(enabled: true, logLevel: LoggerLevel.debug);
-  
-  // 2. Initialize Common Utils Features
-  final initializer = await CommonUtilsInitializer.initialize(
+
+  // Core services
+  LoggerService.init(logLevel: LogLevel.debug);
+  await StorageService.init();                         // SharedPreferences
+  await SecureStorageService.init(namespace: 'myapp'); // tokens & secrets
+  await HiveStorageService.init();                     // larger offline data
+  await DeviceInfoHelper.init();
+  await NetworkConnectivity.init();
+
+  // Push + in-app notifications (needs Firebase for push)
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final utils = await CommonUtilsInitializer.initialize(
     notificationConfig: NotificationConfig.withDefaults(
-      onNotificationTap: (payload) => print('Tapped: ${payload.title}'),
+      requestPermissionOnInit: false, // ask later, in context
+      onTokenRefreshed: (token) => api.saveDeviceToken(token),
     ),
-    enableDownloads: true,
-    enableNotifications: true,
   );
 
-  runApp(
-    MultiBlocProvider(
-      providers: initializer.providers, 
-      child: const MyApp(),
-    ),
-  );
+  Bloc.observer = LoggerService.getBlocObserver();
+
+  runApp(MultiBlocProvider(providers: utils.providers, child: const MyApp()));
 }
 ```
 
 ---
 
-## 📚 Detailed Usage
+## 3. Module map — what to use when
 
-### 1. Responsive UI with `ResponsiveHelper`
+| Need | Use | Notes |
+|---|---|---|
+| Push notifications (FCM) + local display | `CommonNotificationService` | Channels, taps, cold-start routing, topics, tokens, per-channel mute |
+| Notification inbox / badge / centre UI | `NotificationCubit`, `NotificationBadge`, `NotificationCentrePage`, `InAppNotificationOverlay` | Persistent, per-account scopes |
+| Return success/failure without throwing | `Result<T>`, `Result.guard` | Works with your own typed exceptions |
+| Loading/error/data state for a widget | `AsyncState<T>` | Lightweight alternative to a freezed state |
+| Tokens, secrets | `SecureStorageService` | Keychain / Android Keystore |
+| Settings, flags | `StorageService` | SharedPreferences wrapper, typed getters |
+| Offline data, per-user isolation | `HiveStorageService` | `setUser(id)` opens that user's box |
+| Online/offline + connection quality | `NetworkConnectivity` | Stream + quality/latency |
+| Logs, Bloc/HTTP/route logging | `LoggerService` (Talker) | `TalkerRouteObserver` for go_router |
+| Country pickers, dial codes | `CountryData`, `CountryService`, `DialCode` | 194 countries offline |
+| Money formatting / conversion | `CurrencyUtils`, `num.toCurrency()` | NGN default; live rates optional |
+| Form validation | `CommonValidators` | Email, phone, NG phone, BVN, NIN, password… |
+| Pick/compress images & video | `MediaUtils` | Compression, thumbnails, size checks |
+| Pick / save arbitrary files | `FileUtils` | file_picker 13 API |
+| GPS & geocoding | `LocationService` | Permissions handled |
+| Debounce search, throttle taps | `Debouncer`, `Throttler`, `RateLimiter` | |
+| REST calls (non-Supabase APIs) | `HttpClient` (Dio) | Auth interceptor + token manager |
+| Nigerian banks / NUBAN | `BankUtils` | Needs a Paystack key |
+| Video feeds | `LazyVideoCubit`, `VideoPreloadCubit` | TikTok-style preloading |
 
-Build fluid layouts that work perfectly on any screen size.
+---
+
+## 4. Notifications
+
+### 4.1 Setup
 
 ```dart
-// Get values based on screen type
-double padding = ResponsiveHelper.valueWhen(
-  context: context,
-  mobile: 16.0,
-  tablet: 24.0,
-  desktop: 32.0,
-);
+await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-// Responsive Font Size (automatically scales)
-double titleSize = ResponsiveHelper.fontSize(
-  context: context,
-  mobile: 18.0,
-  tablet: 22.0,
+await CommonNotificationService.instance.initialize(
+  NotificationConfig.withDefaults(
+    androidIcon: '@drawable/ic_notification', // white on transparent
+    extraChannels: const [
+      NotificationChannelDef(
+        id: 'calls',
+        name: 'Calls',
+        description: 'Incoming voice and video calls',
+        importance: Importance.max,
+      ),
+    ],
+    requestPermissionOnInit: false,
+    onTokenRefreshed: (token) async => api.saveDeviceToken(token),
+    onNotificationTap: (payload) async {
+      final link = payload.deepLink;
+      if (link == null) return false;  // fall through to payloadHandler
+      router.push(link);
+      return true;                     // handled
+    },
+  ),
 );
 ```
 
-### 2. Network Connectivity & Monitoring
+Default channels: `general`, `orders`, `messages`, `promotions`, `alerts`. Add your own with `extraChannels`. The server chooses the channel with `data.channel`.
 
-Stay informed about the device's internet status with high precision.
+### 4.2 Ask for permission in context
 
 ```dart
-// Initialize monitoring
-await NetworkConnectivity.init(
-  onConnectivityChanged: (status) {
-    print('Type: ${status.connectionType.name}, Connected: ${status.isConnected}');
-  },
-);
-
-// Check connection quality (Excellent, Good, Fair, Poor)
-final quality = await NetworkConnectivity.getConnectionQuality();
-print('Quality: ${quality.name} ${quality.icon}');
-
-// Wait for connection before proceeding
-await NetworkConnectivity.waitForConnection(timeout: Duration(seconds: 10));
+// e.g. on an onboarding screen that explains why
+final allowed = await CommonNotificationService.instance.requestPermission();
 ```
 
-### 3. Location & Geocoding
+### 4.3 Cold start (app opened from a notification)
 
-Easily handle GPS and address conversions.
+The router isn't ready during `initialize`, so the tap is stored. Consume it once your router can navigate:
 
 ```dart
-// Get current location
+redirect: (context, state) {
+  final tap = CommonNotificationService.instance.consumePendingTap();
+  if (tap?.deepLink != null) return tap!.deepLink;
+  return null;
+}
+```
+
+Works for both FCM and **local** notifications (new in 4.0).
+
+### 4.4 Payload conventions
+
+Everything in FCM `data` lands in `payload.data`. Recognised keys:
+
+| Key | Purpose |
+|---|---|
+| `type` | Your event type, e.g. `order.shipped` → `payload.type` |
+| `id` / `orderId` / `productId` / `userId` | → `payload.entityId` |
+| `deepLink` / `deep_link` | → `payload.deepLink` |
+| `channel` | Android channel / category ID |
+| `notificationId` / `tag` / `threadId` / `conversationId` | **Stable key**: a new notification with the same key replaces the old one (chat threads, order status). Clear it with `cancelByKey(key)` |
+| `groupKey` | Android group / iOS thread grouping |
+
+Typed access: `payload.get<double>('amount')`, `payload.typed(MyModel.fromJson)`.
+
+### 4.5 Per-category mute (new)
+
+```dart
+final prefs = CommonNotificationService.instance.preferences;
+await prefs.setMuted('promotions', true);
+prefs.isMuted('promotions');              // true
+prefs.changes.listen(syncToBackend);      // keep your server in sync
+await prefs.switchScope(activeAccountId); // per-account preferences
+```
+
+Muting stops the app from **displaying** foreground and local notifications on that channel. Background FCM notification messages are drawn by the OS, so also store the preference server-side and skip sending.
+
+### 4.6 In-app inbox, badge & centre
+
+`CommonUtilsInitializer` creates a `NotificationCubit` and, by default, pipes every foreground push into it.
+
+```dart
+NotificationBadge(child: Icon(Icons.notifications_outlined));   // total unread
+NotificationBadge(channelId: 'orders', child: Icon(Icons.receipt)); // per category
+
+context.read<NotificationCubit>().switchScope(accountId); // per-account inbox
+context.read<NotificationCubit>().markChannelRead('orders');
+state.unreadByChannel; // {'orders': 2, 'messages': 5}
+```
+
+Toasts over any screen:
+
+```dart
+MaterialApp.router(builder: (c, child) => InAppNotificationOverlay(child: child!));
+InAppNotificationController.instance.show(title: 'Saved', body: 'Draft stored offline');
+```
+
+### 4.7 Custom routing class
+
+Implement `INotificationHandler` for larger apps and pass it as `payloadHandler`. Order of evaluation: config callback → handler → default behaviour. Replace at runtime with `setHandler`.
+
+### 4.8 Logout
+
+```dart
+await CommonNotificationService.instance.unsubscribeAll();
+await CommonNotificationService.instance.deleteToken();
+```
+
+---
+
+## 5. Result & error handling
+
+```dart
+final result = await Result.guard(() => repo.fetchProfile());
+
+switch (result) {
+  case Success(:final data):   show(data);
+  case Failure(:final message): showError(message);
+}
+```
+
+* `Result.guard` / `Result.guardSync` capture errors **and stack traces**; non-`Exception` errors are wrapped, so building a failure never throws.
+* Put a typed error in `exception` (anything that `implements Exception`) and read it with `result.exceptionOrNull`.
+* `mapError` turns raw errors into friendly messages:
+
+```dart
+Result.guard(
+  () => api.call(),
+  mapError: (e, st) => (message: 'Could not reach the server', exception: MyNetworkFailure()),
+);
+```
+
+Also: `map`, `flatMap`, `fold`, `when`, `onSuccess`, `onFailure`, `getOrDefault`, `getOrElse`, `recover`, `dataOrNull`, `errorOrNull`, `stackTraceOrNull`.
+
+---
+
+## 6. Storage
+
+| Service | Backing store | Use for |
+|---|---|---|
+| `StorageService` | SharedPreferences | Settings, flags, small JSON |
+| `SecureStorageService` | Keychain / Keystore | Tokens, secrets, PINs |
+| `HiveStorageService` | Hive CE | Offline caches, drafts, per-user data |
+
+```dart
+await StorageService.instance.setBool('onboarded', true);
+StorageService.instance.getBoolOrDefault('onboarded', false);
+
+await SecureStorageService.instance.setString('refresh_token', token);
+
+await HiveStorageService.instance.setUser(accountId);            // opens user_<id> box
+await HiveStorageService.instance.setGlobalBool('seen_intro', true);
+```
+
+**New apps:** call `SecureStorageService.init(namespace: 'yourapp')` so values never collide with another app. Leaving the defaults keeps the 3.x (`grascope_*`) location, which is only needed for existing installs.
+
+---
+
+## 7. Connectivity
+
+```dart
+await NetworkConnectivity.init(onConnectivityChanged: (s) => print(s.isConnected));
+NetworkConnectivity.isConnected;
+NetworkConnectivity.onConnectivityChanged.listen((status) { ... });
+await NetworkConnectivity.getConnectionQuality(); // excellent/good/fair/poor
+await NetworkConnectivity.waitForConnection(timeout: const Duration(seconds: 10));
+```
+
+`hasInternetConnection()` is now bounded by a 3-second timeout, so a slow or captive network can't stall start-up.
+
+---
+
+## 8. Logging
+
+```dart
+LoggerService.init(logLevel: LogLevel.debug, enabled: !kReleaseMode);
+final log = LoggerService.instance;
+log.info('Loaded');
+log.error('Failed', error, stackTrace);
+Bloc.observer = LoggerService.getBlocObserver();
+
+GoRouter(observers: [TalkerRouteObserver(LoggerService.instance.talker)]);
+// In-app log viewer: TalkerScreen(talker: LoggerService.instance.talker)
+```
+
+---
+
+## 9. Countries, dial codes & currency
+
+```dart
+CountryData.all;                 // 194 countries, offline
+CountryData.byCode['NG'];        // Country
+CountryData.search('nig');       // name / code / dial code
+CountryData.popular;             // NG, GH, ZA, KE, US, GB…
+CountryService.init();           // optional: switch to a live source
+CountryService.instance.getDialCodes(); // List<DialCode> for phone pickers ("🇳🇬 +234")
+
+1500000.toCurrency();                        // ₦1,500,000.00
+CurrencyUtils.formatAmount(2500, 'NGN');     // ₦2,500.00
+CurrencyUtils.formatCompact(2450000, 'NGN'); // ₦2.45M
+```
+
+---
+
+## 10. Validators & extensions
+
+```dart
+TextFormField(validator: CommonValidators.nigerianPhoneValidator);
+TextFormField(validator: CommonValidators.combine([
+  (v) => CommonValidators.required(v, fieldName: 'Username'),
+  (v) => CommonValidators.minLengthValidator(v, 3),
+]));
+
+'dev@example.com'.isValidEmail;   // true
+'08012345678'.isValidNigerianPhone;
+'hello world'.toTitleCase;        // Hello World
+DateTime.now().toTimeAgo;         // "Just now"
+[1, 2, 2, 3].distinct();          // [1, 2, 3]
+```
+
+---
+
+## 11. Media, images & files
+
+```dart
+final picked = await MediaUtils.pickImageFromGallery();
+final compressed = await MediaUtils.compressImage(file, quality: 70);  // data-saver uploads
+final thumb = await MediaUtils.extractThumbnailBytes(videoFile);
+
+// file_picker 13 based (see UPGRADING.md)
+final doc = await FileUtils.pickDocument();
+final many = await FileUtils.pickMultipleFiles(type: FilePickerType.image, compressionQuality: 70);
+final uri = await FileUtils.saveFile(fileName: 'invoice.pdf', bytes: pdfBytes);
+```
+
+---
+
+## 12. Location
+
+```dart
 final latLng = await LocationService.instance.getCurrentLatLng();
-
-// Reverse Geocoding: Coordinates to Address
 final address = await LocationService.instance.getFormattedAddress(6.5244, 3.3792);
-
-// Calculate distance between two points
-double distance = LocationService.instance.calculateDistance(lat1, lon1, lat2, lon2);
+final metres = LocationService.instance.calculateDistance(lat1, lon1, lat2, lon2);
+LocationService.instance.setGeocodingLocale(const Locale('fr'));
 ```
 
-### 4. Performance: Debouncer, Throttler & Rate Limiter
+---
 
-Optimize expensive operations like search or button clicks.
+## 13. Performance helpers
 
 ```dart
-final searchDebouncer = Debouncer(delay: Duration(milliseconds: 500));
-final loginThrottler = Throttler(duration: Duration(seconds: 2));
-final apiLimiter = RateLimiter(maxCalls: 5, period: Duration(minutes: 1));
+final search = Debouncer(delay: const Duration(milliseconds: 400));
+onChanged: (q) => search(() => cubit.search(q));
 
-// Usage in UI
-onChanged: (val) => searchDebouncer(() => performSearch(val));
-onPressed: () => loginThrottler(() => attemptLogin());
+final tap = Throttler(duration: const Duration(seconds: 1));
+onPressed: () => tap(submit);
 
-// Rate Limiter check
-if (apiLimiter(() => callExpensiveAPI())) {
-  print('API Call Successful');
-} else {
-  print('Rate limit exceeded. Try again in ${apiLimiter.timeUntilNextCall}');
+final limiter = RateLimiter(maxCalls: 5, period: const Duration(minutes: 1));
+if (!limiter(() => sendOtp())) showWait(limiter.timeUntilNextCall);
+```
+
+---
+
+## 14. Name collisions to know about
+
+The barrel exports a few short, common names. If they clash with your code, hide them:
+
+| Export | Clashes with |
+|---|---|
+| `Failure`, `Success` (Result) | your own failure classes |
+| `Initial`, `Loading` (AsyncState) | generic state names |
+| `HttpClient` | `dart:io` `HttpClient` |
+| `Location` (geocoding) | other location models |
+
+```dart
+import 'package:common_utils2/common_utils2.dart' hide Failure, HttpClient;
+```
+
+Prefer naming your own types `AppFailure`, `ApiClient`, etc.
+
+---
+
+## 15. Platform setup checklist
+
+**Android** (`android/app/build.gradle.kts`)
+
+```kotlin
+android {
+    compileSdk = 37
+    defaultConfig { minSdk = 24 }
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true   // flutter_local_notifications
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
+dependencies { coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") }
 ```
 
-### 5. Storage Options
+`AndroidManifest.xml`:
 
-```dart
-// Persistent Storage (Hive) - Ideal for large data
-await HiveStorageService.instance.setString('user_name', 'Innocent');
-
-// Secure Storage - Ideal for Tokens/Secrets
-await SecureStorageService.instance.setString('auth_token', 'eyJhbGci...');
-
-// SharedPreferences - Ideal for UI Settings
-await SharedPrefStorage.instance.setBool('is_dark_mode', true);
+```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+<uses-permission android:name="android.permission.INTERNET"/>
+<!-- inside <application> -->
+<meta-data android:name="com.google.firebase.messaging.default_notification_channel_id"
+           android:value="general"/>
 ```
 
-### 6. Advanced Extensions
-
-```dart
-// String Validations & Masking
-'dev@example.com'.isValidEmail;       // true
-'admin@gmail.com'.maskEmail;         // a****@gmail.com
-
-// Currency & Formatting
-1500000.toCurrency();                // ₦1,500,000.00
-DateTime.now().toReadableString();   // 2 minutes ago
-
-// Collections
-List items = [1, 2, 2, 3].distinct(); // [1, 2, 3]
-```
-
-### 7. Encryption & Security
-
-```dart
-// AES Encryption
-String encrypted = EncryptionUtils.aesEncrypt('Sensitive Data', 'my-secret-key');
-String decrypted = EncryptionUtils.aesDecrypt(encrypted, 'my-secret-key');
-
-// Generate Secure Tokens
-String otp = EncryptionUtils.generateOTP(6);
-String uuid = EncryptionUtils.generateUUID();
-```
+**iOS**: enable *Push Notifications* and *Background Modes → Remote notifications* in Xcode, upload your APNs key to Firebase, and set the deployment target to 13.0.
 
 ---
 
-## 🇳🇬 Nigerian-Specific Features
+## License
 
-- **NUBAN Validation**: Validate bank account numbers with `BankUtils.validateAccount`.
-- **Full Bank List**: Access all commercial and microfinance banks in Nigeria.
-- **Identity Validation**: Built-in validators for **BVN**, **NIN**, and **Phone Numbers**.
-- **Geography**: Complete offline list of all 36 Nigerian states + FCT.
-- **Currency**: Native support for the `₦` symbol and local formatting.
+MIT — see [LICENSE](LICENSE).
 
----
-
-## 📄 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## ⭐ Support
-
-If you find this package useful, please consider giving it a star on [GitHub](https://github.com/mhista/common_utils)!
-
-**Author**: Diwe Innocent  
-**Email**: diweesomchi@gmail.com  
-**Website**: [https://innocentdiwe.qzz.io](https://innocentdiwe.qzz.io)
+**Author**: Diwe Innocent · [innocentdiwe.qzz.io](https://innocentdiwe.qzz.io) · diweesomchi@gmail.com

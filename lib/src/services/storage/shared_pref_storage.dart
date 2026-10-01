@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:common_utils2/common_utils2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Storage Service
@@ -251,71 +250,5 @@ class StorageService {
   }
 }
 
-
-/// Example Usage Class
-/// Shows how to use StorageService with type-safe methods
-class StorageExample {
-  final _storage = StorageService.instance;
-
-  // Save user data
-  Future<void> saveUserData({
-    required String token,
-    required String userId,
-    required Map<String, dynamic> profile,
-  }) async {
-    await _storage.setBatch({
-      // StorageKeys.authToken: token,
-      StorageKeys.userId: userId,
-      StorageKeys.userAvatarUrl: profile,
-      // StorageKeys.isLoggedIn: true,
-    });
-  }
-
-  // Get user data
-  Map<String, dynamic>? getUserData() {
-    // if (!_storage.getBoolOrDefault(StorageKeys.isLoggedIn, false)) {
-    //   return null;
-    // }
-
-    return {
-      // 'token': _storage.getString(StorageKeys.authToken),
-      'userId': _storage.getString(StorageKeys.userId),
-      'profile': _storage.getJson(StorageKeys.userAvatarUrl),
-    };
-  }
-
-  // Clear user data on logout
-  // Future<void> logout() async {
-  //   await _storage.removeBatch([
-  //     StorageKeys.authToken,
-  //     StorageKeys.refreshToken,
-  //     StorageKeys.userId,
-  //     StorageKeys.userEmail,
-  //     StorageKeys.userAvatarUrl,
-  //   ]);
-  //   // await _storage.setBool(StorageKeys.isLoggedIn, false);
-  // }
-
-  // Save app settings
-  Future<void> saveSettings({
-    required bool isDarkMode,
-    required String language,
-    required bool notificationsEnabled,
-  }) async {
-    await _storage.setBatch({
-      StorageKeys.isDarkMode: isDarkMode,
-      StorageKeys.language: language,
-      StorageKeys.notificationsEnabled: notificationsEnabled,
-    });
-  }
-
-  // Get app settings
-  Map<String, dynamic> getSettings() {
-    return {
-      'isDarkMode': _storage.getBoolOrDefault(StorageKeys.isDarkMode, false),
-      'language': _storage.getStringOrDefault(StorageKeys.language, 'en'),
-      'notificationsEnabled':
-          _storage.getBoolOrDefault(StorageKeys.notificationsEnabled, true),
-    };
-  }
-}
+// Usage examples live in the package README and example/ app —
+// they are intentionally not part of the public library API.

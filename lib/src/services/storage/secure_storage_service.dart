@@ -8,31 +8,46 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// USE THIS FOR: tokens, credentials, session data, any sensitive value.
 /// USE StorageService (SharedPreferences) FOR: settings, preferences, non-sensitive flags.
 ///
-/// iOS:  Data stored in Keychain. Supports keychain groups for cross-app sharing.
-/// Android: AES-256 encrypted via EncryptedSharedPreferences.
+/// iOS:     Data stored in the Keychain. Supports keychain groups for cross-app sharing.
+/// Android: AES-GCM encrypted storage backed by the Android Keystore
+///          (flutter_secure_storage 11 — EncryptedSharedPreferences is gone).
 ///
 /// TWO WAYS TO USE:
 ///
 /// 1. Singleton via [init] + [instance] — for the main app-wide storage instance:
 /// ```dart
-/// await SecureStorageService.init();
-/// SecureStorageService.instance.setString('key', 'value');
+/// await SecureStorageService.init(namespace: 'dii');
+/// await SecureStorageService.instance.setString('key', 'value');
 /// ```
 ///
 /// 2. Scoped instance via [withOptions] — when you need separate storage
-///    configurations (e.g. merkado_auth needs a shared scope AND a local scope):
-/// ```dart 
+///    configurations (e.g. a shared scope AND a local scope):
+/// ```dart
 /// final sharedStorage = SecureStorageService.withOptions(
 ///   iOSOptions: IOSOptions(groupId: 'com.grascope.sharedauth'),
-///   androidOptions: AndroidOptions(sharedPreferencesName: 'grascope_shared'),
+///   androidOptions: AndroidOptions(storageNamespace: 'grascope_shared'),
 /// );
 /// ```
+///
+/// MIGRATING FROM 3.x
+/// `init()` keeps the old defaults (`grascope_secure_prefs` / `grascope_`),
+/// so existing installs keep reading the same values. New apps should pass
+/// their own [namespace] so they never collide with another app's data.
 class SecureStorageService {
   SecureStorageService._internal(FlutterSecureStorage storage)
       : _storage = storage;
 
   static SecureStorageService? _instance;
   final FlutterSecureStorage _storage;
+
+  /// Default Android storage namespace used by 3.x (kept for compatibility).
+  static const String legacyNamespace = 'grascope_secure_prefs';
+
+  /// Default key prefix used by 3.x (kept for compatibility).
+  static const String legacyKeyPrefix = 'grascope_';
+
+  /// Whether [init] has been called.
+  static bool get isInitialized => _instance != null;
 
   /// The app-wide singleton instance.
   /// Only available after [init] has been called.
@@ -46,25 +61,35 @@ class SecureStorageService {
 
   /// Initialize the app-wide singleton instance.
   ///
-  /// [enableCrossAppSharing] — when true, uses the shared Grascope keychain
-  /// group on iOS and the shared keystore namespace on Android.
-  /// Set to true on all apps once the shared keystore is configured.
+  /// * [namespace] — Android storage namespace (isolates this app's secure
+  ///   values). Defaults to the 3.x value for backward compatibility.
+  /// * [keyPrefix] — Android key prefix. Defaults to the 3.x value.
+  /// * [enableCrossAppSharing] — when true, uses [sharedKeychainGroup] on iOS
+  ///   so several apps from the same team can share a session.
+  /// * [sharedKeychainGroup] / [sharedAccountName] — iOS keychain sharing
+  ///   identifiers (only used when [enableCrossAppSharing] is true).
   ///
-  /// Call this in main() after StorageService.init().
-  static Future<void> init({bool enableCrossAppSharing = false}) async {
+  /// Safe to call more than once — later calls replace the instance.
+  static Future<void> init({
+    String namespace = legacyNamespace,
+    String keyPrefix = legacyKeyPrefix,
+    bool enableCrossAppSharing = false,
+    String sharedKeychainGroup = 'com.grascope.sharedauth',
+    String sharedAccountName = 'grascope_session',
+  }) async {
     final iOSOptions = enableCrossAppSharing
-        ? const IOSOptions(
-            groupId: 'com.grascope.sharedauth',
-            accountName: 'grascope_session',
+        ? IOSOptions(
+            groupId: sharedKeychainGroup,
+            accountName: sharedAccountName,
             accessibility: KeychainAccessibility.first_unlock,
           )
         : const IOSOptions(
             accessibility: KeychainAccessibility.first_unlock,
           );
 
-    const androidOptions = AndroidOptions(
-      sharedPreferencesName: 'grascope_secure_prefs',
-      preferencesKeyPrefix: 'grascope_',
+    final androidOptions = AndroidOptions(
+      storageNamespace: namespace,
+      preferencesKeyPrefix: keyPrefix,
     );
 
     _instance = SecureStorageService._internal(
@@ -75,18 +100,15 @@ class SecureStorageService {
   /// Create a scoped instance with custom storage options.
   ///
   /// Use this when you need a storage instance configured differently
-  /// from the app-wide singleton — for example, the merkado_auth package
-  /// creates two instances: one for cross-app shared data and one for
-  /// private per-app data.
+  /// from the app-wide singleton — for example, an auth package that keeps
+  /// one instance for cross-app shared data and one for private per-app data.
   ///
   /// This does NOT affect the singleton [instance].
   factory SecureStorageService.withOptions({
     IOSOptions iOSOptions = const IOSOptions(
       accessibility: KeychainAccessibility.first_unlock,
     ),
-    AndroidOptions androidOptions = const AndroidOptions(
-      // encryptedSharedPreferences: true,
-    ),
+    AndroidOptions androidOptions = const AndroidOptions(),
   }) {
     return SecureStorageService._internal(
       FlutterSecureStorage(iOptions: iOSOptions, aOptions: androidOptions),
@@ -232,4 +254,4 @@ class SecureStorageService {
       await remove(key);
     }
   }
-}
+}

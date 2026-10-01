@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' show Locale;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -92,8 +93,10 @@ class LocationService {
 
     try {
       return await Geolocator.getCurrentPosition(
-          desiredAccuracy: accuracy,
+        locationSettings: LocationSettings(
+          accuracy: accuracy,
           timeLimit: timeLimit,
+        ),
       );
     } catch (e) {
       throw LocationException('Failed to get current location: $e');
@@ -207,13 +210,19 @@ class LocationService {
 
   // ==================== Geocoding (Address ↔ Coordinates) ====================
 
+  /// geocoding 5.x moved the top-level helpers onto a [Geocoding] instance.
+  Geocoding _geocoder = Geocoding();
+
+  /// Override the locale used for geocoding results (e.g. `Locale('fr')`).
+  void setGeocodingLocale(Locale? locale) => _geocoder = Geocoding(locale: locale);
+
   /// Get address from coordinates (Reverse Geocoding)
   Future<List<Placemark>> getAddressFromCoordinates(
     double latitude,
     double longitude,
   ) async {
     try {
-      return await placemarkFromCoordinates(latitude, longitude);
+      return await _geocoder.placemarkFromCoordinates(latitude, longitude);
     } catch (e) {
       throw LocationException('Failed to get address: $e');
     }
@@ -240,7 +249,7 @@ class LocationService {
   /// Get coordinates from address (Geocoding)
   Future<List<Location>> getCoordinatesFromAddress(String address) async {
     try {
-      return await locationFromAddress(address);
+      return await _geocoder.locationFromAddress(address);
     } catch (e) {
       throw LocationException('Failed to get coordinates: $e');
     }
@@ -447,4 +456,4 @@ class LocationException implements Exception {
 
   @override
   String toString() => 'LocationException: $message';
-}
+}

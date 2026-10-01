@@ -1,5 +1,5 @@
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'notification_cubit.dart';
@@ -203,10 +203,10 @@ class _DismissibleEntry extends StatelessWidget {
           decoration: BoxDecoration(
             color: entry.isRead
                 ? Colors.transparent
-                : theme.colorScheme.primaryContainer.withOpacity(0.25),
+                : theme.colorScheme.primaryContainer.withValues(alpha: 0.25),
             border: Border(
               bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant.withOpacity(0.5),
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -260,7 +260,7 @@ class _DismissibleEntry extends StatelessWidget {
                       _relativeTime(entry.receivedAt),
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant
-                            .withOpacity(0.7),
+                            .withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -311,7 +311,7 @@ class _EmptyState extends StatelessWidget {
                   color: Theme.of(context)
                       .colorScheme
                       .onSurfaceVariant
-                      .withOpacity(0.7),
+                      .withValues(alpha: 0.7),
             ),
           ),
         ],

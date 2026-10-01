@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Color Utilities
 /// Provides color conversion, manipulation, and generation utilities
@@ -20,9 +20,9 @@ class ColorUtils {
   /// Convert Color to hex string
   static String toHex(Color color, {bool includeAlpha = false}) {
     if (includeAlpha) {
-      return '#${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+      return '#${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
     }
-    return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
+    return '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
   }
 
   // ==================== Color Brightness ====================
@@ -103,7 +103,7 @@ class ColorUtils {
   /// Adjust opacity
   static Color withOpacity(Color color, double opacity) {
     assert(opacity >= 0.0 && opacity <= 1.0);
-    return color.withOpacity(opacity);
+    return color.withValues(alpha: opacity);
   }
 
   // ==================== Color Shades ====================
@@ -128,7 +128,7 @@ class ColorUtils {
   static MaterialColor generateMaterialColor(Color color) {
     final shades = generateShades(color);
     return MaterialColor(
-      color.value,
+      color.toARGB32(),
       {
         50: shades[50]!,
         100: shades[100]!,
@@ -335,9 +335,9 @@ extension ColorExtension on Color {
 
   /// Get RGB values as map
   Map<String, int> get rgb => {
-        'r': red,
-        'g': green,
-        'b': blue,
+        'r': (r * 255.0).round().clamp(0, 255),
+        'g': (g * 255.0).round().clamp(0, 255),
+        'b': (b * 255.0).round().clamp(0, 255),
       };
 
   /// Get HSL values as map
@@ -349,4 +349,4 @@ extension ColorExtension on Color {
       'l': hslColor.lightness,
     };
   }
-}
+}

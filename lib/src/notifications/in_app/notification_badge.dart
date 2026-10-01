@@ -1,5 +1,5 @@
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'notification_cubit.dart';
 import 'notification_state.dart';
@@ -15,24 +15,33 @@ import 'notification_state.dart';
 /// ```
 class NotificationBadge extends StatelessWidget {
   final Widget child;
-  const NotificationBadge({super.key, required this.child});
+
+  /// When set, only unread entries of this channel/category are counted.
+  final String? channelId;
+
+  const NotificationBadge({super.key, required this.child, this.channelId});
 
   @override
   Widget build(BuildContext context) {
     return BlocSelector<NotificationCubit, NotificationState, int>(
-      selector: (state) => state.unreadCount,
+      selector: (state) => channelId == null
+          ? state.unreadCount
+          : state.unreadCountFor(channelId!),
       builder: (context, count) {
         if (count == 0) return child;
-        return Stack(
-          clipBehavior: Clip.none,
-          children: [
-            child,
-            Positioned(
-              top: -4,
-              right: -4,
-              child: _Badge(count: count),
-            ),
-          ],
+        return Semantics(
+          label: '$count unread notification${count == 1 ? '' : 's'}',
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              child,
+              Positioned(
+                top: -4,
+                right: -4,
+                child: ExcludeSemantics(child: _Badge(count: count)),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -58,8 +67,8 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(
         count > 99 ? '99+' : '$count',
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onError,
           fontSize: 9,
           fontWeight: FontWeight.bold,
           height: 1,

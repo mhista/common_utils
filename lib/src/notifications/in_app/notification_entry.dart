@@ -5,6 +5,8 @@ import '../notification_payload.dart';
 part 'notification_entry.freezed.dart';
 part 'notification_entry.g.dart';
 
+int _localSeq = 0;
+
 @freezed
 abstract class NotificationEntry with _$NotificationEntry {
   const NotificationEntry._(); // needed for custom getters
@@ -29,7 +31,7 @@ abstract class NotificationEntry with _$NotificationEntry {
   factory NotificationEntry.fromPayload(NotificationPayload payload) {
     return NotificationEntry(
       id: payload.messageId ??
-          'local_${DateTime.now().millisecondsSinceEpoch}',
+          'local_${DateTime.now().microsecondsSinceEpoch}_${_localSeq++}',
       title: payload.title,
       body: payload.body,
       imageUrl: payload.imageUrl,

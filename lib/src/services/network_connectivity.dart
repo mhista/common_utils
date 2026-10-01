@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 
 /// Network Connectivity Utility
 /// Monitor network status, connection type, and connectivity changes
@@ -36,7 +35,8 @@ class NetworkConnectivity {
     // Listen to connectivity changes
     _connectivitySubscription = _connectivity.onConnectivityChanged.listen(
       (List<ConnectivityResult> results) async {
-        final result = results.first;
+        final result =
+            results.isEmpty ? ConnectivityResult.none : results.first;
         _connectionStatus = result;
 
         // Check actual internet connectivity
@@ -65,7 +65,8 @@ class NetworkConnectivity {
   static Future<NetworkStatus> checkConnectivity() async {
     try {
       final result = await _connectivity.checkConnectivity();
-      final connectivityResult = result.first;
+      final connectivityResult =
+          result.isEmpty ? ConnectivityResult.none : result.first;
       final hasInternet = await hasInternetConnection();
 
       return NetworkStatus(
@@ -84,10 +85,16 @@ class NetworkConnectivity {
     }
   }
 
-  /// Check if device has internet connection (actual connectivity test)
-  static Future<bool> hasInternetConnection() async {
+  /// Check if device has internet connection (actual connectivity test).
+  ///
+  /// Bounded by [timeout] so a slow/captive network can never stall app
+  /// start-up (important on low-bandwidth connections).
+  static Future<bool> hasInternetConnection({
+    String host = 'google.com',
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
     try {
-      final result = await InternetAddress.lookup('google.com');
+      final result = await InternetAddress.lookup(host).timeout(timeout);
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } on SocketException catch (_) {
       return false;
@@ -498,69 +505,5 @@ class SpeedTestResult {
   }
 }
 
-/// Usage Examples
-void networkConnectivityExamples() async {
-  // Initialize
-  await NetworkConnectivity.init(
-    onConnectivityChanged: (status) {
-      debugPrint('Connection changed: ${status.connectionType.name}');
-      if (status.isConnected) {
-        debugPrint('✓ Connected to internet');
-      } else {
-        debugPrint('✗ No internet connection');
-      }
-    },
-  );
-
-  // Check current status
-  final status = await NetworkConnectivity.checkConnectivity();
-  debugPrint('Current status: ${status.connectionType.name}');
-  debugPrint('Connected: ${status.isConnected}');
-
-  // Check connection type
-  if (NetworkConnectivity.isWifi) {
-    debugPrint('Connected via WiFi');
-  } else if (NetworkConnectivity.isMobile) {
-    debugPrint('Connected via Mobile Data');
-  } else if (NetworkConnectivity.isSatellite) {
-    debugPrint('Connected via Satellite');
-  }
-
-  // Check internet connectivity
-  final hasInternet = await NetworkConnectivity.hasInternetConnection();
-  debugPrint('Has internet: $hasInternet');
-
-  // Ping test
-  final pingResult = await NetworkConnectivity.ping(host: 'google.com');
-  debugPrint(pingResult.toString());
-
-  // Check connection quality
-  final quality = await NetworkConnectivity.getConnectionQuality();
-  debugPrint('Connection quality: ${quality.icon} ${quality.name}');
-
-  // Estimate speed
-  final speedTest = await NetworkConnectivity.estimateSpeed();
-  debugPrint('Estimated speed: ${speedTest.formattedSpeed}');
-
-  // Listen to connectivity changes
-  NetworkConnectivity.onConnectivityChanged.listen((status) {
-    debugPrint('${status.connectionType.icon} ${status.connectionType.name}');
-  });
-
-  // Wait for connection
-  try {
-    await NetworkConnectivity.waitForConnection(
-      timeout: const Duration(seconds: 10),
-    );
-    debugPrint('Connection established!');
-  } catch (e) {
-    debugPrint('Timeout waiting for connection');
-  }
-
-  // Get quick status
-  debugPrint('Is connected: ${NetworkConnectivity.isConnected}');
-  debugPrint('Connection type: ${NetworkConnectivity.connectionType}');
-
-  // Cleanup
-  NetworkConnectivity.dispose();
-}
+// Usage examples live in the package README and example/ app —
+// they are intentionally not part of the public library API.

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'download_item.dart';
@@ -9,13 +9,13 @@ part of 'download_item.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DownloadItem {
 
- String get id; String get url; String get fileName; DownloadType get type; DownloadStatus get status; double get progress;// 0.0 to 1.0
- int get bytesDownloaded; int get totalBytes; String? get savePath; String? get errorMessage; DateTime? get startedAt; DateTime? get completedAt;
+ String get id; String get url; String get fileName; DownloadType get type; DownloadStatus get status; double get progress; int get bytesDownloaded; int get totalBytes; String? get savePath; String? get errorMessage; DateTime? get startedAt; DateTime? get completedAt;
 /// Create a copy of DownloadItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,21 @@ $DownloadItemCopyWith<DownloadItem> get copyWith => _$DownloadItemCopyWithImpl<D
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadItem&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.bytesDownloaded, bytesDownloaded) || other.bytesDownloaded == bytesDownloaded)&&(identical(other.totalBytes, totalBytes) || other.totalBytes == totalBytes)&&(identical(other.savePath, savePath) || other.savePath == savePath)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+  final _this = this as DownloadItem;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DownloadItem&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.url, _this.url) || other.url == _this.url)&&(identical(other.fileName, _this.fileName) || other.fileName == _this.fileName)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.status, _this.status) || other.status == _this.status)&&(identical(other.progress, _this.progress) || other.progress == _this.progress)&&(identical(other.bytesDownloaded, _this.bytesDownloaded) || other.bytesDownloaded == _this.bytesDownloaded)&&(identical(other.totalBytes, _this.totalBytes) || other.totalBytes == _this.totalBytes)&&(identical(other.savePath, _this.savePath) || other.savePath == _this.savePath)&&(identical(other.errorMessage, _this.errorMessage) || other.errorMessage == _this.errorMessage)&&(identical(other.startedAt, _this.startedAt) || other.startedAt == _this.startedAt)&&(identical(other.completedAt, _this.completedAt) || other.completedAt == _this.completedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,url,fileName,type,status,progress,bytesDownloaded,totalBytes,savePath,errorMessage,startedAt,completedAt);
+int get hashCode {
+  final _this = this as DownloadItem;
+  return Object.hash(runtimeType,_this.id,_this.url,_this.fileName,_this.type,_this.status,_this.progress,_this.bytesDownloaded,_this.totalBytes,_this.savePath,_this.errorMessage,_this.startedAt,_this.completedAt);
+}
 
 @override
 String toString() {
-  return 'DownloadItem(id: $id, url: $url, fileName: $fileName, type: $type, status: $status, progress: $progress, bytesDownloaded: $bytesDownloaded, totalBytes: $totalBytes, savePath: $savePath, errorMessage: $errorMessage, startedAt: $startedAt, completedAt: $completedAt)';
+  final _this = this as DownloadItem;
+  return 'DownloadItem(id: ${_this.id}, url: ${_this.url}, fileName: ${_this.fileName}, type: ${_this.type}, status: ${_this.status}, progress: ${_this.progress}, bytesDownloaded: ${_this.bytesDownloaded}, totalBytes: ${_this.totalBytes}, savePath: ${_this.savePath}, errorMessage: ${_this.errorMessage}, startedAt: ${_this.startedAt}, completedAt: ${_this.completedAt})';
 }
 
 
@@ -64,7 +69,7 @@ class _$DownloadItemCopyWithImpl<$Res>
 /// Create a copy of DownloadItem
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? url = null,Object? fileName = null,Object? type = null,Object? status = null,Object? progress = null,Object? bytesDownloaded = null,Object? totalBytes = null,Object? savePath = freezed,Object? errorMessage = freezed,Object? startedAt = freezed,Object? completedAt = freezed,}) {
-  return _then(_self.copyWith(
+  return _then(DownloadItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
@@ -227,7 +232,6 @@ class _DownloadItem extends DownloadItem {
 @override final  DownloadType type;
 @override@JsonKey() final  DownloadStatus status;
 @override@JsonKey() final  double progress;
-// 0.0 to 1.0
 @override@JsonKey() final  int bytesDownloaded;
 @override@JsonKey() final  int totalBytes;
 @override final  String? savePath;
@@ -245,16 +249,18 @@ _$DownloadItemCopyWith<_DownloadItem> get copyWith => __$DownloadItemCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadItem&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.bytesDownloaded, bytesDownloaded) || other.bytesDownloaded == bytesDownloaded)&&(identical(other.totalBytes, totalBytes) || other.totalBytes == totalBytes)&&(identical(other.savePath, savePath) || other.savePath == savePath)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _DownloadItem&&(identical(other.id, id) || other.id == id)&&(identical(other.url, url) || other.url == url)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.progress, progress) || other.progress == progress)&&(identical(other.bytesDownloaded, bytesDownloaded) || other.bytesDownloaded == bytesDownloaded)&&(identical(other.totalBytes, totalBytes) || other.totalBytes == totalBytes)&&(identical(other.savePath, savePath) || other.savePath == savePath)&&(identical(other.errorMessage, errorMessage) || other.errorMessage == errorMessage)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.completedAt, completedAt) || other.completedAt == completedAt));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,url,fileName,type,status,progress,bytesDownloaded,totalBytes,savePath,errorMessage,startedAt,completedAt);
+int get hashCode {
+    return Object.hash(runtimeType,id,url,fileName,type,status,progress,bytesDownloaded,totalBytes,savePath,errorMessage,startedAt,completedAt);
+}
 
 @override
 String toString() {
-  return 'DownloadItem(id: $id, url: $url, fileName: $fileName, type: $type, status: $status, progress: $progress, bytesDownloaded: $bytesDownloaded, totalBytes: $totalBytes, savePath: $savePath, errorMessage: $errorMessage, startedAt: $startedAt, completedAt: $completedAt)';
+    return 'DownloadItem(id: $id, url: $url, fileName: $fileName, type: $type, status: $status, progress: $progress, bytesDownloaded: $bytesDownloaded, totalBytes: $totalBytes, savePath: $savePath, errorMessage: $errorMessage, startedAt: $startedAt, completedAt: $completedAt)';
 }
 
 

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint
+// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'video_preload_cubit.dart';
@@ -9,6 +9,7 @@ part of 'video_preload_cubit.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format off
 T _$identity<T>(T value) => value;
 /// @nodoc
@@ -19,14 +20,14 @@ mixin _$VideoPreloadState<T> implements DiagnosticableTreeMixin {
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
+    properties
     ..add(DiagnosticsProperty('type', 'VideoPreloadState<$T>'))
     ;
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VideoPreloadState<T>);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is VideoPreloadState<T>);
 }
 
 
@@ -35,7 +36,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'VideoPreloadState<$T>()';
+    return 'VideoPreloadState<$T>()';
 }
 
 
@@ -208,14 +209,14 @@ class _Initial<T> with DiagnosticableTreeMixin implements VideoPreloadState<T> {
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
+    properties
     ..add(DiagnosticsProperty('type', 'VideoPreloadState<$T>.initial'))
     ;
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Initial<T>);
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Initial<T>);
 }
 
 
@@ -224,7 +225,7 @@ int get hashCode => runtimeType.hashCode;
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'VideoPreloadState<$T>.initial()';
+    return 'VideoPreloadState<$T>.initial()';
 }
 
 
@@ -251,23 +252,25 @@ _$LoadingCopyWith<T, _Loading<T>> get copyWith => __$LoadingCopyWithImpl<T, _Loa
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
+    properties
     ..add(DiagnosticsProperty('type', 'VideoPreloadState<$T>.loading'))
     ..add(DiagnosticsProperty('currentIndex', currentIndex));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loading<T>&&(identical(other.currentIndex, currentIndex) || other.currentIndex == currentIndex));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Loading<T>&&(identical(other.currentIndex, currentIndex) || other.currentIndex == currentIndex));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,currentIndex);
+int get hashCode {
+    return Object.hash(runtimeType,currentIndex);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'VideoPreloadState<$T>.loading(currentIndex: $currentIndex)';
+    return 'VideoPreloadState<$T>.loading(currentIndex: $currentIndex)';
 }
 
 
@@ -309,7 +312,7 @@ as int,
 
 
 class _Ready<T> with DiagnosticableTreeMixin implements VideoPreloadState<T> {
-  const _Ready({required this.currentIndex, required this.currentItemId, required final  Map<String, VideoPlayerController> controllers, required final  List<VideoItem<T>> items, this.isPlaying = true, this.isMuted = false, this.isExpanded = true}): _controllers = controllers,_items = items;
+  const _Ready({required this.currentIndex, required this.currentItemId, required  Map<String, VideoPlayerController> controllers, required  List<VideoItem<T>> items, this.isPlaying = true, this.isMuted = false, this.isExpanded = true}): _controllers = controllers,_items = items;
   
 
  final  int currentIndex;
@@ -341,23 +344,25 @@ _$ReadyCopyWith<T, _Ready<T>> get copyWith => __$ReadyCopyWithImpl<T, _Ready<T>>
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
+    properties
     ..add(DiagnosticsProperty('type', 'VideoPreloadState<$T>.ready'))
     ..add(DiagnosticsProperty('currentIndex', currentIndex))..add(DiagnosticsProperty('currentItemId', currentItemId))..add(DiagnosticsProperty('controllers', controllers))..add(DiagnosticsProperty('items', items))..add(DiagnosticsProperty('isPlaying', isPlaying))..add(DiagnosticsProperty('isMuted', isMuted))..add(DiagnosticsProperty('isExpanded', isExpanded));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Ready<T>&&(identical(other.currentIndex, currentIndex) || other.currentIndex == currentIndex)&&(identical(other.currentItemId, currentItemId) || other.currentItemId == currentItemId)&&const DeepCollectionEquality().equals(other._controllers, _controllers)&&const DeepCollectionEquality().equals(other._items, _items)&&(identical(other.isPlaying, isPlaying) || other.isPlaying == isPlaying)&&(identical(other.isMuted, isMuted) || other.isMuted == isMuted)&&(identical(other.isExpanded, isExpanded) || other.isExpanded == isExpanded));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Ready<T>&&(identical(other.currentIndex, currentIndex) || other.currentIndex == currentIndex)&&(identical(other.currentItemId, currentItemId) || other.currentItemId == currentItemId)&&const DeepCollectionEquality().equals(other.controllers, _controllers)&&const DeepCollectionEquality().equals(other.items, _items)&&(identical(other.isPlaying, isPlaying) || other.isPlaying == isPlaying)&&(identical(other.isMuted, isMuted) || other.isMuted == isMuted)&&(identical(other.isExpanded, isExpanded) || other.isExpanded == isExpanded));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,currentIndex,currentItemId,const DeepCollectionEquality().hash(_controllers),const DeepCollectionEquality().hash(_items),isPlaying,isMuted,isExpanded);
+int get hashCode {
+    return Object.hash(runtimeType,currentIndex,currentItemId,const DeepCollectionEquality().hash(_controllers),const DeepCollectionEquality().hash(_items),isPlaying,isMuted,isExpanded);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'VideoPreloadState<$T>.ready(currentIndex: $currentIndex, currentItemId: $currentItemId, controllers: $controllers, items: $items, isPlaying: $isPlaying, isMuted: $isMuted, isExpanded: $isExpanded)';
+    return 'VideoPreloadState<$T>.ready(currentIndex: $currentIndex, currentItemId: $currentItemId, controllers: $controllers, items: $items, isPlaying: $isPlaying, isMuted: $isMuted, isExpanded: $isExpanded)';
 }
 
 
@@ -419,23 +424,25 @@ _$ErrorCopyWith<T, _Error<T>> get copyWith => __$ErrorCopyWithImpl<T, _Error<T>>
 
 @override
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
-  properties
+    properties
     ..add(DiagnosticsProperty('type', 'VideoPreloadState<$T>.error'))
     ..add(DiagnosticsProperty('message', message));
 }
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Error<T>&&(identical(other.message, message) || other.message == message));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Error<T>&&(identical(other.message, message) || other.message == message));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,message);
+int get hashCode {
+    return Object.hash(runtimeType,message);
+}
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-  return 'VideoPreloadState<$T>.error(message: $message)';
+    return 'VideoPreloadState<$T>.error(message: $message)';
 }
 
 

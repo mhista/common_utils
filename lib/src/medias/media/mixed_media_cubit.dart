@@ -2,7 +2,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'models/media_item.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../image/image_preload_service.dart';
 
@@ -70,4 +70,4 @@ class MixedMediaCubit<T> extends Cubit<MixedMediaState<T>> {
       ..addAll(indicesToPreload);
     emit(state.copyWith(preloadedIndices: preloaded));
   }
-}
+}

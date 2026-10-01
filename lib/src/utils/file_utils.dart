@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart' as file_picker;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -372,72 +373,70 @@ class FileUtils {
 
   // ==================== FILE PICKER METHODS ====================
 
-  /// Pick a single file
-  /// Returns PickedFileInfo with file details or null if cancelled
+  /// Pick a single file.
+  /// Returns [PickedFileInfo] with file details, or null if cancelled.
+  ///
+  /// [compressionQuality] (0–100, 0 = off) compresses picked images/videos on
+  /// platforms that support it. [withBytes] eagerly reads the file into memory
+  /// (needed on web, where there is no file path). Prefer paths on mobile.
   static Future<PickedFileInfo?> pickFile({
     List<String>? allowedExtensions,
     FilePickerType type = FilePickerType.any,
-    bool allowCompression = true,
+    int compressionQuality = 0,
+    bool withBytes = false,
+    @Deprecated('Use compressionQuality instead') bool allowCompression = true,
   }) async {
     try {
-      final result = await FilePicker.pickFiles(
+      final file = await FilePicker.pickFile(
         type: _convertFilePickerType(type),
         allowedExtensions: allowedExtensions,
-        // allowCompression: allowCompression,
+        compressionQuality: compressionQuality,
       );
-
-      if (result != null && result.files.isNotEmpty) {
-        return _platformFileToPickedFileInfo(result.files.first);
-      }
-      return null;
+      if (file == null) return null;
+      return await _platformFileToPickedFileInfo(file, withBytes: withBytes);
     } catch (e) {
       return null;
     }
   }
 
-  /// Pick multiple files
-  /// Returns list of PickedFileInfo or empty list if cancelled
+  /// Pick multiple files.
+  /// Returns a list of [PickedFileInfo], or an empty list if cancelled.
   static Future<List<PickedFileInfo>> pickMultipleFiles({
     List<String>? allowedExtensions,
     FilePickerType type = FilePickerType.any,
-    bool allowCompression = true,
+    int compressionQuality = 0,
+    bool withBytes = false,
+    @Deprecated('Use compressionQuality instead') bool allowCompression = true,
   }) async {
     try {
-      final result = await FilePicker.pickFiles(
+      final files = await FilePicker.pickFiles(
         type: _convertFilePickerType(type),
         allowedExtensions: allowedExtensions,
-        // allowCompression: allowCompression,
-        allowMultiple: true,
+        compressionQuality: compressionQuality,
       );
-
-      if (result != null && result.files.isNotEmpty) {
-        return result.files
-            .map((file) => _platformFileToPickedFileInfo(file))
-            .toList();
-      }
-      return [];
+      return await Future.wait(
+        files.map((f) => _platformFileToPickedFileInfo(f, withBytes: withBytes)),
+      );
     } catch (e) {
       return [];
     }
   }
 
-  /// Pick image file
-  static Future<PickedFileInfo?> pickImage({
-    bool allowCompression = true,
-  }) async {
+  /// Pick image file. [compressionQuality] 0–100 (0 = original).
+  static Future<PickedFileInfo?> pickImage({int compressionQuality = 0}) async {
     return await pickFile(
       type: FilePickerType.image,
-      allowCompression: allowCompression,
+      compressionQuality: compressionQuality,
     );
   }
 
-  /// Pick multiple images
+  /// Pick multiple images. [compressionQuality] 0–100 (0 = original).
   static Future<List<PickedFileInfo>> pickMultipleImages({
-    bool allowCompression = true,
+    int compressionQuality = 0,
   }) async {
     return await pickMultipleFiles(
       type: FilePickerType.image,
-      allowCompression: allowCompression,
+      compressionQuality: compressionQuality,
     );
   }
 
@@ -488,43 +487,46 @@ class FileUtils {
   /// Pick custom file types
   static Future<PickedFileInfo?> pickCustomFile({
     required List<String> extensions,
-    bool allowCompression = true,
   }) async {
     return await pickFile(
       type: FilePickerType.custom,
       allowedExtensions: extensions,
-      allowCompression: allowCompression,
     );
   }
 
   /// Pick multiple custom file types
   static Future<List<PickedFileInfo>> pickMultipleCustomFiles({
     required List<String> extensions,
-    bool allowCompression = true,
   }) async {
     return await pickMultipleFiles(
       type: FilePickerType.custom,
       allowedExtensions: extensions,
-      allowCompression: allowCompression,
     );
   }
 
-  /// Save file picker - let user choose where to save
-  /// Returns the path where file should be saved, or null if cancelled
-  static Future<String?> saveFile({
+  /// Let the user choose where to save [bytes] as [fileName].
+  ///
+  /// Returns the saved file's [Uri] (scheme may be `file`, `content`, `blob`…
+  /// depending on platform), or null if cancelled / failed.
+  ///
+  /// 4.0.0: file_picker 13 writes the bytes itself, so [bytes] is required.
+  static Future<Uri?> saveFile({
+    required String fileName,
+    required Uint8List bytes,
+    String mimeType = 'application/octet-stream',
     String? dialogTitle,
-    String? fileName,
     List<String>? allowedExtensions,
     FilePickerType type = FilePickerType.any,
   }) async {
     try {
-      final result = await FilePicker.saveFile(
-        dialogTitle: dialogTitle,
+      return await FilePicker.saveFile(
         fileName: fileName,
+        bytes: bytes,
+        mimeType: mimeType,
+        dialogTitle: dialogTitle,
         type: _convertFilePickerType(type),
         allowedExtensions: allowedExtensions,
       );
-      return result;
     } catch (e) {
       return null;
     }
@@ -574,15 +576,22 @@ class FileUtils {
     }
   }
 
-  /// Convert PlatformFile to PickedFileInfo
-  static PickedFileInfo _platformFileToPickedFileInfo(PlatformFile platformFile) {
+  /// Convert PlatformFile to PickedFileInfo.
+  ///
+  /// file_picker 13 no longer pre-loads bytes or exposes `size`; the size is
+  /// read lazily and bytes are only loaded when [withBytes] is true.
+  static Future<PickedFileInfo> _platformFileToPickedFileInfo(
+    PlatformFile platformFile, {
+    bool withBytes = false,
+  }) async {
+    final size = platformFile.lengthSync() ?? await platformFile.length() ?? 0;
     return PickedFileInfo(
       path: platformFile.path,
       name: platformFile.name,
-      bytes: platformFile.bytes,
-      size: platformFile.size,
+      bytes: withBytes ? await platformFile.readAsBytes() : null,
+      size: size,
       extension: platformFile.extension,
-      identifier: platformFile.identifier,
+      identifier: platformFile.uri.toString(),
     );
   }
 
@@ -769,4 +778,4 @@ class PickedFileInfo {
       identifier: identifier ?? this.identifier,
     );
   }
-}
+}

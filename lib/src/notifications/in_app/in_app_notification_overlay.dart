@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../notification_payload.dart';
 import 'notification_cubit.dart';
@@ -132,19 +132,37 @@ class InAppNotificationOverlay extends StatefulWidget {
 
 class _InAppNotificationOverlayState
     extends State<InAppNotificationOverlay> {
+  // Own Overlay: MaterialApp.builder sits ABOVE the Navigator's overlay, so
+  // Overlay.of(context) would throw there. Hosting our own overlay makes the
+  // widget work wherever it is placed.
+  final _overlayKey = GlobalKey<OverlayState>();
+  late final OverlayEntry _content = OverlayEntry(
+    builder: (_) => widget.child,
+    maintainState: true,
+  );
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final overlay = _overlayKey.currentState;
+      if (!mounted || overlay == null) return;
       // Read the cubit provided by your app's BlocProvider tree
       final cubit = context.read<NotificationCubit>();
-      InAppNotificationController.instance
-          .attach(Overlay.of(context), cubit);
+      InAppNotificationController.instance.attach(overlay, cubit);
     });
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  void didUpdateWidget(covariant InAppNotificationOverlay oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Child changed (e.g. route/theme rebuild) → repaint the content entry.
+    if (oldWidget.child != widget.child) _content.markNeedsBuild();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      Overlay(key: _overlayKey, initialEntries: [_content]);
 }
 
 // ── Toast UI ──────────────────────────────────────────────────────────────────
@@ -231,14 +249,14 @@ class _NotificationToastState extends State<_NotificationToast>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
+                      color: Colors.black.withValues(alpha: 0.12),
                       blurRadius: 20,
                       offset: const Offset(0, 6),
                     ),
                   ],
                   border: Border.all(
                     color:
-                        theme.colorScheme.outlineVariant.withOpacity(0.5),
+                        theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Row(
@@ -247,7 +265,7 @@ class _NotificationToastState extends State<_NotificationToast>
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: iconColor.withOpacity(0.12),
+                        color: iconColor.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
                       child:

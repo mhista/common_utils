@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension TextStyleExtensions on TextStyle {
   /// Shortcut for light weight
